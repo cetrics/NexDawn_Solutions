@@ -721,3 +721,62 @@
     height: 120px !important;
   }
 }
+
+/* Star Rating Styles */
+.star-rating {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 5px 0;
+}
+
+.star {
+  color: #ffc107;
+}
+
+.star.empty {
+  color: #e4e5e9;
+}
+
+.star.half {
+  background: linear-gradient(90deg, #ffc107 50%, #e4e5e9 50%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.rating-text {
+  margin-left: 5px;
+  font-size: 0.8em;
+  color: #666;
+}
+
+.item-rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 5px 0;
+}
+
+.review-count {
+  font-size: 0.8em;
+  color: #666;
+}
+
+/* Out of stock styles */
+.item-stock.out-of-stock {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.add-to-cart-btn:disabled {
+  background: #6c757d !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+}
+
+.add-to-cart-btn:disabled:hover {
+  background: #6c757d !important;
+  transform: none !important;
+  box-shadow: none !important;
+}

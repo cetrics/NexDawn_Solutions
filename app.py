@@ -1065,6 +1065,400 @@ def get_user_orders(user_id):
         cursor.close()
         conn.close()
 
+@app.route("/api/categories/with-products", methods=["GET"])
+def get_categories_with_products():
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+    try:
+        cursor = conn.cursor(dictionary=True)
+        # Get categories that have at least one product
+        cursor.execute("""
+            SELECT DISTINCT c.id, c.name, COUNT(p.id) as product_count
+            FROM categories c
+            LEFT JOIN products p ON c.id = p.category_id
+            GROUP BY c.id, c.name
+            HAVING COUNT(p.id) > 0
+            ORDER BY c.name ASC
+        """)
+        categories = cursor.fetchall()
+        return jsonify(categories), 200
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        return jsonify({"error": "Server error"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/reviews/product/<int:product_id>", methods=["GET"])
+def get_reviews_by_product(product_id):
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+    try:
+        cursor = conn.cursor(dictionary=True)
+        
+        # Simplified query - only get what we need for star ratings
+        cursor.execute("""
+            SELECT rating
+            FROM reviews 
+            WHERE product_id = %s
+        """, (product_id,))
+        reviews = cursor.fetchall()
+        
+        # Calculate average rating and count
+        cursor.execute("""
+            SELECT AVG(rating) as average_rating, COUNT(*) as review_count
+            FROM reviews 
+            WHERE product_id = %s
+        """, (product_id,))
+        stats = cursor.fetchone()
+        
+        return jsonify({
+            "average_rating": float(stats['average_rating']) if stats['average_rating'] else 0,
+            "review_count": stats['review_count'] or 0
+        }), 200
+    except Exception as e:
+        print(f"❌ Error fetching reviews: {e}")
+        return jsonify({"error": "Server error"}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+@app.route("/api/register", methods=["POST"])
+def register():
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        data = request.get_json()
+        
+        # Required fields
+        email = data.get("email")
+        username = data.get("username")
+        password = data.get("password")
+        
+        if not email or not username or not password:
+            return jsonify({"success": False, "message": "Email, username, and password are required"}), 400
+
+        # Check if user already exists
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id FROM users WHERE email = %s OR username = %s", (email, username))
+        existing_user = cursor.fetchone()
+        
+        if existing_user:
+            return jsonify({"success": False, "message": "User with this email or username already exists"}), 409
+
+        # Hash password
+        hashed_password = generate_password_hash(password)
+
+        # Insert new user
+        cursor.execute("""
+            INSERT INTO users (
+                email, username, password, first_name, last_name, 
+                phone, id_number, date_of_birth, gender, created_at, updated_at
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+        """, (
+            email,
+            username,
+            hashed_password,
+            data.get("first_name", ""),
+            data.get("last_name", ""),
+            data.get("phone", ""),
+            data.get("id_number", ""),
+            data.get("date_of_birth"),
+            data.get("gender", "")
+        ))
+
+        conn.commit()
+
+        # Get the newly created user
+        cursor.execute("""
+            SELECT id, username, email, phone, first_name, last_name 
+            FROM users WHERE id = LAST_INSERT_ID()
+        """)
+        new_user = cursor.fetchone()
+
+        # Generate JWT token
+        access_token = create_access_token(
+            identity=str(new_user["id"]),
+            additional_claims={
+                "email": new_user["email"],
+                "phone": new_user["phone"] if new_user["phone"] else "",
+                "username": new_user["username"],
+                "first_name": new_user["first_name"] if new_user["first_name"] else "",
+                "last_name": new_user["last_name"] if new_user["last_name"] else ""
+            }
+        )
+
+        return jsonify({
+            "success": True,
+            "message": "Registration successful",
+            "token": access_token,
+            "user": new_user
+        }), 201
+
+    except Exception as e:
+        print(f"❌ Registration error: {e}")
+        conn.rollback()
+        return jsonify({"success": False, "message": "Internal server error"}), 500
+
+    finally:
+        if conn.is_connected():
+            cursor.close()
+            conn.close()
+
+# Contact form endpoint
+@app.route('/api/contact', methods=['POST'])
+def submit_contact():
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                'success': False,
+                'message': 'No data provided'
+            }), 400
+        
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip()
+        message = data.get('message', '').strip()
+
+        if not name or not email or not message:
+            return jsonify({
+                'success': False,
+                'message': 'All fields are required'
+            }), 400
+
+        # Get database connection
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({
+                'success': False,
+                'message': 'Database connection failed'
+            }), 500
+
+        cursor = conn.cursor()
+        
+        # Insert contact message
+        sql = "INSERT INTO contact_message (name, email, message) VALUES (%s, %s, %s)"
+        cursor.execute(sql, (name, email, message))
+        conn.commit()
+
+        message_id = cursor.lastrowid
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            'success': True,
+            'message': 'Message sent successfully!',
+            'id': message_id
+        }), 201
+
+    except mysql.connector.Error as db_err:
+        print(f"Database error: {db_err}")
+        return jsonify({
+            'success': False,
+            'message': 'Failed to save message to database'
+        }), 500
+        
+    except Exception as e:
+        print(f"Server error: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Internal server error'
+        }), 500
+
+# Optional: Get all messages (for admin)
+@app.route('/api/contact/messages', methods=['GET'])
+def get_messages():
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'success': False, 'message': 'Database connection failed'}), 500
+
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM contact_message ORDER BY created_at DESC")
+        messages = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            'success': True,
+            'messages': messages
+        })
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({'success': False, 'message': 'Failed to fetch messages'}), 500
+
+
+@app.route("/api/admin/orders")
+def get_all_orders():
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "DB connection failed"}), 500
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+
+        # Get all orders with user information
+        cursor.execute("""
+            SELECT 
+                o.id,
+                o.order_number,
+                o.total_amount,
+                o.payment_method,
+                o.status,
+                o.created_at,
+                u.email as user_email,
+                (
+                    SELECT GROUP_CONCAT(CONCAT(p.name, ' x', oi.quantity) SEPARATOR ', ')
+                    FROM order_items oi
+                    JOIN products p ON p.id = oi.product_id
+                    WHERE oi.order_id = o.id
+                ) AS items_summary
+            FROM orders o
+            LEFT JOIN users u ON u.id = o.user_id
+            ORDER BY o.created_at DESC
+        """)
+        orders = cursor.fetchall()
+
+        # Get order items with images
+        order_ids = [o["id"] for o in orders]
+        if order_ids:
+            placeholders = ",".join(["%s"] * len(order_ids))
+            cursor.execute(f"""
+                SELECT 
+                    oi.order_id,
+                    p.id AS product_id,
+                    p.name AS title,
+                    oi.quantity,
+                    (
+                        SELECT pi.image_filename
+                        FROM product_images pi
+                        WHERE pi.product_id = p.id
+                        ORDER BY pi.id ASC
+                        LIMIT 1
+                    ) AS image_filename
+                FROM order_items oi
+                JOIN products p ON p.id = oi.product_id
+                WHERE oi.order_id IN ({placeholders})
+                ORDER BY oi.order_id, oi.id
+            """, order_ids)
+            rows = cursor.fetchall()
+
+            by_order = defaultdict(list)
+            for r in rows:
+                img_file = r.get("image_filename")
+                image_url = url_for("static", filename=f"uploads/{img_file}") if img_file else None
+                by_order[r["order_id"]].append({
+                    "product_id": r["product_id"],
+                    "title": r["title"],
+                    "quantity": r["quantity"],
+                    "image": image_url,
+                })
+
+        # Convert timezone and attach items
+        nairobi_tz = pytz.timezone("Africa/Nairobi")
+        for o in orders:
+            if isinstance(o["created_at"], datetime):
+                o["created_at"] = o["created_at"].astimezone(nairobi_tz).isoformat()
+            o["items"] = by_order.get(o["id"], [])
+            o.pop("id", None)
+
+        return jsonify(orders)
+
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/admin/orders/<order_number>/status", methods=["PUT"])
+def update_order_status(order_number):
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "DB connection failed"}), 500
+
+    try:
+        data = request.get_json()
+        new_status = data.get('status')
+        
+        if not new_status:
+            return jsonify({"error": "Status is required"}), 400
+
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE orders SET status = %s WHERE order_number = %s",
+            (new_status, order_number)
+        )
+        conn.commit()
+
+        return jsonify({"message": "Order status updated successfully"})
+
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/admin/customers")
+def get_all_customers():
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "DB connection failed"}), 500
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+
+        # Get all customers with order counts
+        cursor.execute("""
+            SELECT 
+                u.id,
+                u.username,
+                u.email,
+                u.first_name,
+                u.last_name,
+                u.phone,
+                u.id_number,
+                u.date_of_birth,
+                u.gender,
+                u.created_at,
+                u.updated_at,
+                u.last_login,
+                COUNT(o.id) as order_count
+            FROM users u
+            LEFT JOIN orders o ON u.id = o.user_id
+            GROUP BY u.id
+            ORDER BY u.created_at DESC
+        """)
+        customers = cursor.fetchall()
+
+        # Convert datetime to string for JSON serialization
+        for customer in customers:
+            if customer['created_at']:
+                customer['created_at'] = customer['created_at'].isoformat()
+            if customer['updated_at']:
+                customer['updated_at'] = customer['updated_at'].isoformat()
+            if customer['last_login']:
+                customer['last_login'] = customer['last_login'].isoformat()
+            if customer['date_of_birth']:
+                customer['date_of_birth'] = customer['date_of_birth'].isoformat()
+
+        return jsonify(customers)
+
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 if __name__ == "__main__":
     app.run(debug=True)

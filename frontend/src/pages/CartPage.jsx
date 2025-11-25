@@ -6,25 +6,74 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import Header from "./Header";
 
+// Star Rating Component
+const StarRating = ({ rating, size = 16 }) => {
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 >= 0.5;
+  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+  return (
+    <div className="star-rating" style={{ fontSize: `${size}px` }}>
+      {/* Full stars */}
+      {[...Array(fullStars)].map((_, i) => (
+        <span key={`full-${i}`} className="star full">★</span>
+      ))}
+      
+      {/* Half star */}
+      {hasHalfStar && <span className="star half">★</span>}
+      
+      {/* Empty stars */}
+      {[...Array(emptyStars)].map((_, i) => (
+        <span key={`empty-${i}`} className="star empty">☆</span>
+      ))}
+      
+      <span className="rating-text">({rating.toFixed(1)})</span>
+    </div>
+  );
+};
+
 const CartPage = () => {
   const [cart, setCart] = useState([]);
   const [similarProducts, setSimilarProducts] = useState([]);
-  const [mainImages, setMainImages] = useState({}); // ✅ Store main image per item
+  const [mainImages, setMainImages] = useState({});
   const [savedItems, setSavedItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
+  const [productReviews, setProductReviews] = useState({});
   const allSelected = cart.length > 0 && selectedItems.length === cart.length;
   const navigate = useNavigate();
+
+  // Fetch reviews for cart items
+  useEffect(() => {
+    const fetchReviewsForCart = async () => {
+      const reviews = {};
+      for (const item of cart) {
+        try {
+          const response = await fetch(`/api/reviews/product/${item.id}`);
+          if (response.ok) {
+            const data = await response.json();
+            reviews[item.id] = data;
+          }
+        } catch (error) {
+          console.error(`Error fetching reviews for product ${item.id}:`, error);
+        }
+      }
+      setProductReviews(reviews);
+    };
+
+    if (cart.length > 0) {
+      fetchReviewsForCart();
+    }
+  }, [cart]);
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("cart")) || [];
     setCart(stored);
 
-    setCart(stored);
     const storedSelected = JSON.parse(localStorage.getItem("selectedItems"));
     if (storedSelected) {
       setSelectedItems(storedSelected);
     } else {
-      setSelectedItems([]); // nothing pre-selected
+      setSelectedItems([]);
     }
 
     const storedSaved = JSON.parse(localStorage.getItem("savedItems")) || [];
@@ -99,14 +148,12 @@ const CartPage = () => {
     setCart(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart));
 
-    // ✅ Make sure it's also selected
     setSelectedItems((prev) => [...prev, item.id]);
     localStorage.setItem(
       "selectedItems",
       JSON.stringify([...selectedItems, item.id])
     );
 
-    // ✅ Ensure mainImages is updated so the image appears immediately
     setMainImages((prev) => ({
       ...prev,
       [item.id]: item.images?.[0] || "fallback.jpg",
@@ -114,17 +161,31 @@ const CartPage = () => {
   };
 
   const updateQuantity = (id, change) => {
-    const updated = cart.map((item) =>
-      item.id === id
-        ? { ...item, quantity: Math.max(1, item.quantity + change) }
-        : item
-    );
+    const updated = cart.map((item) => {
+      if (item.id === id) {
+        const newQuantity = item.quantity + change;
+        const stock = item.stock_quantity || 0;
+
+        // Prevent going below 1 or above available stock
+        if (newQuantity < 1) return item;
+        if (newQuantity > stock) {
+          toast.warn(`Only ${stock} items available in stock`, {
+            position: "top-right",
+            autoClose: 2000,
+          });
+          return item;
+        }
+
+        return { ...item, quantity: newQuantity };
+      }
+      return item;
+    });
     setCart(updated);
     localStorage.setItem("cart", JSON.stringify(updated));
   };
 
   const totalPrice = cart
-    .filter((item) => selectedItems.includes(item.id)) // ✅ only selected
+    .filter((item) => selectedItems.includes(item.id))
     .reduce((sum, item) => {
       const price = item.discount
         ? item.price * (1 - item.discount / 100)
@@ -156,11 +217,8 @@ const CartPage = () => {
 
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-
-    // Update cart state
     setCart(storedCart);
 
-    // Update cart count badge in DOM
     const cartCountEl = document.querySelector(".cart-count");
     if (cartCountEl) {
       const totalItems = storedCart.reduce(
@@ -208,7 +266,6 @@ const CartPage = () => {
   useEffect(() => {
     const cartCountEl = document.querySelector(".cart-count");
     if (cartCountEl) {
-      // Count only selected items' quantities
       const totalItems = cart
         .filter((item) => selectedItems.includes(item.id))
         .reduce((sum, item) => sum + (item.quantity || 1), 0);
@@ -280,6 +337,9 @@ const CartPage = () => {
             const discountedPrice = item.discount
               ? item.price * (1 - item.discount / 100)
               : item.price;
+            const reviews = productReviews[item.id];
+            const averageRating = reviews?.average_rating || 0;
+            const reviewCount = reviews?.review_count || 0;
 
             return (
               <div className="cart-item" key={item.id}>
@@ -334,7 +394,22 @@ const CartPage = () => {
 
                 <div className="item-details">
                   <h4 className="item-name">{item.name}</h4>
-                  <p className="item-stock">In Stock</p>
+                  
+                  {/* Display star rating */}
+                  {reviewCount > 0 && (
+                    <div className="item-rating">
+                      <StarRating rating={averageRating} size={14} />
+                      <span className="review-count">({reviewCount})</span>
+                    </div>
+                  )}
+                  
+                  <p
+                    className={`item-stock ${
+                      item.stock_quantity <= 0 ? "out-of-stock" : ""
+                    }`}
+                  >
+                    {item.stock_quantity <= 0 ? "Out of Stock" : "In Stock"}
+                  </p>
                   {item.colors && (
                     <p className="item-color">
                       Color: {item.colors.map((c) => c.name || c).join("/")}
@@ -357,9 +432,15 @@ const CartPage = () => {
                 </div>
 
                 <div className="item-qty">
-                  <button onClick={() => updateQuantity(item.id, -1)}>-</button>
+                  <button 
+                    onClick={() => updateQuantity(item.id, -1)}
+                    disabled={item.quantity <= 1}
+                  >-</button>
                   <span>{item.quantity}</span>
-                  <button onClick={() => updateQuantity(item.id, 1)}>+</button>
+                  <button 
+                    onClick={() => updateQuantity(item.id, 1)}
+                    disabled={item.quantity >= (item.stock_quantity || 0)}
+                  >+</button>
                 </div>
               </div>
             );
@@ -379,6 +460,9 @@ const CartPage = () => {
                   const images = product.images || [];
                   const colors = product.colors || [];
                   const stock = product.stock_quantity || 0;
+                  const reviews = productReviews[product.id];
+                  const averageRating = reviews?.average_rating || 0;
+                  const reviewCount = reviews?.review_count || 0;
 
                   return (
                     <div className="product-card" key={product.id || index}>
@@ -427,6 +511,14 @@ const CartPage = () => {
                           : product.name || `Product ${index + 1}`}
                       </h3>
 
+                      {/* Add star rating for similar products */}
+                      {reviewCount > 0 && (
+                        <div className="item-rating">
+                          <StarRating rating={averageRating} size={12} />
+                          <span className="review-count">({reviewCount})</span>
+                        </div>
+                      )}
+
                       <p className="product-meta">
                         {colors.length} Color{colors.length !== 1 ? "s" : ""} |{" "}
                         {stock} in stock
@@ -473,10 +565,18 @@ const CartPage = () => {
                       <button
                         className="add-to-cart-btn"
                         onClick={() => {
+                          // Check stock first
+                          if (stock <= 0) {
+                            toast.error(`${product.name} is out of stock`, {
+                              position: "top-right",
+                              autoClose: 2000,
+                            });
+                            return;
+                          }
+
                           const cart =
                             JSON.parse(localStorage.getItem("cart")) || [];
 
-                          // Ensure we grab the correct image field
                           const productToAdd = {
                             ...product,
                             image:
@@ -491,15 +591,25 @@ const CartPage = () => {
                             (item) => item.id === productToAdd.id
                           );
                           if (existing) {
+                            // Check if adding would exceed stock
+                            if (existing.quantity >= stock) {
+                              toast.warn(
+                                `Only ${stock} items available in stock`,
+                                {
+                                  position: "top-right",
+                                  autoClose: 2000,
+                                }
+                              );
+                              return;
+                            }
                             existing.quantity += 1;
                           } else {
                             cart.push(productToAdd);
                           }
 
                           localStorage.setItem("cart", JSON.stringify(cart));
-                          setCart(cart); // ✅ add this after updating localStorage
-                          // after you update `cart` and call setCart(cart):
-                          // ✅ Select the new product automatically
+                          setCart(cart);
+
                           setSelectedItems((prev) => [
                             ...prev,
                             productToAdd.id,
@@ -528,11 +638,6 @@ const CartPage = () => {
                           toast.success(`${product.name} added to cart`, {
                             position: "top-right",
                             autoClose: 2500,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            theme: "colored",
                           });
                         }}
                       >
@@ -564,13 +669,13 @@ const CartPage = () => {
               }`}
               disabled={selectedItems.length === 0}
               onClick={() => {
-                if (selectedItems.length === 0) return; // Maintain disabled functionality
+                if (selectedItems.length === 0) return;
 
                 if (!isAuthenticated()) {
                   toast.info("Please sign in to proceed to checkout", {
                     position: "top-right",
                   });
-                  navigate("/login?from=/checkout"); // keep query param, not state
+                  navigate("/login?from=/checkout");
                   return;
                 }
                 navigate("/checkout");

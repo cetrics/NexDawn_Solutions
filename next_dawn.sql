@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 15, 2025 at 07:27 PM
+-- Generation Time: Nov 25, 2025 at 08:54 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -61,6 +61,27 @@ CREATE TABLE `colors` (
 INSERT INTO `colors` (`color_id`, `name`) VALUES
 (1, 'red'),
 (2, 'blue');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `contact_message`
+--
+
+CREATE TABLE `contact_message` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `contact_message`
+--
+
+INSERT INTO `contact_message` (`id`, `name`, `email`, `message`, `created_at`) VALUES
+(1, 'cetric Omwembe', 'scetric@gmail.com', 'This is a testing Message', '2025-11-25 19:06:25');
 
 -- --------------------------------------------------------
 
@@ -259,6 +280,21 @@ CREATE TABLE `product_sizes` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `reviews`
+--
+
+CREATE TABLE `reviews` (
+  `id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `rating` int(11) NOT NULL,
+  `comment` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `sizes`
 --
 
@@ -297,7 +333,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `username`, `first_name`, `last_name`, `phone`, `id_number`, `user_type`, `is_verified`, `date_of_birth`, `gender`, `profile_image`, `last_login`, `updated_at`, `password`, `created_at`) VALUES
-(1, 'peakersdesign@gmail.com', 'cetric', NULL, NULL, '0700391535', '378956', 'customer', 0, NULL, NULL, NULL, NULL, '2025-11-14 20:19:17', 'scrypt:32768:8:1$gcNXOvGgmBIhYkWw$1f2ac45a127235022e691dbac2d1703b3042257aeeb941447b5eb9109b36274111418e1b70d598d94516e880b4151555fa59adc797cf2e8a31175020a24d2f38', '2025-11-06 20:27:47');
+(1, 'peakersdesign@gmail.com', 'cetric', NULL, NULL, '0700391535', '378956', 'admin', 0, NULL, NULL, NULL, NULL, '2025-11-25 18:33:52', 'scrypt:32768:8:1$gcNXOvGgmBIhYkWw$1f2ac45a127235022e691dbac2d1703b3042257aeeb941447b5eb9109b36274111418e1b70d598d94516e880b4151555fa59adc797cf2e8a31175020a24d2f38', '2025-11-06 20:27:47'),
+(2, 'lydia@gmail.com', 'lydia', 'Lydia', 'Ochieng\'', '+254700391646', '204567', 'customer', 0, '1997-06-11', 'male', NULL, NULL, '2025-11-25 18:29:24', 'pbkdf2:sha256:600000$rVgct1ht1tOS1gnU$397a0f3c47367aca458d2c951f461c8e47642c9d92e89d20bf34cfd72668ce34', '2025-11-25 18:29:24');
 
 --
 -- Indexes for dumped tables
@@ -314,6 +351,12 @@ ALTER TABLE `categories`
 --
 ALTER TABLE `colors`
   ADD PRIMARY KEY (`color_id`);
+
+--
+-- Indexes for table `contact_message`
+--
+ALTER TABLE `contact_message`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `delivery_addresses`
@@ -376,6 +419,14 @@ ALTER TABLE `product_sizes`
   ADD KEY `size_id` (`size_id`);
 
 --
+-- Indexes for table `reviews`
+--
+ALTER TABLE `reviews`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `product_id` (`product_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
 -- Indexes for table `sizes`
 --
 ALTER TABLE `sizes`
@@ -404,6 +455,12 @@ ALTER TABLE `categories`
 --
 ALTER TABLE `colors`
   MODIFY `color_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `contact_message`
+--
+ALTER TABLE `contact_message`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `delivery_addresses`
@@ -454,6 +511,12 @@ ALTER TABLE `product_sizes`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `reviews`
+--
+ALTER TABLE `reviews`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `sizes`
 --
 ALTER TABLE `sizes`
@@ -463,7 +526,7 @@ ALTER TABLE `sizes`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables
@@ -512,6 +575,13 @@ ALTER TABLE `product_images`
 ALTER TABLE `product_sizes`
   ADD CONSTRAINT `product_sizes_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `product_sizes_ibfk_2` FOREIGN KEY (`size_id`) REFERENCES `sizes` (`size_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `reviews`
+--
+ALTER TABLE `reviews`
+  ADD CONSTRAINT `reviews_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `reviews_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

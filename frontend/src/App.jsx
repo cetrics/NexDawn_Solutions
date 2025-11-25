@@ -14,6 +14,13 @@ import CartPage from "./pages/CartPage.jsx";
 import CheckoutPage from "./pages/CheckoutPage.jsx";
 import AddressesPage from "./pages/AddAddressPage.jsx";
 import OrdersPage from "./pages/OrdersPage.jsx";
+import Wishlist from "./pages/Wishlist.jsx";
+import Registration from "./pages/Registration.jsx";
+import ProductsAndServices from "./pages/ProductsAndServices.jsx";
+import ContactMessage from "./pages/ContactMessage.jsx";
+import AdminOrders from "./pages/AdminOrders.jsx";
+import AdminCustomers from "./pages/AdminCustomers.jsx";
+import AdminContactMessages from "./pages/AdminContactMessages.jsx";
 
 // Axios interceptors
 axios.interceptors.request.use(
@@ -72,14 +79,21 @@ const App = () => {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/add-address" element={<AddressesPage />} />
           <Route path="/order-confirmation" element={<OrdersPage />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/signup" element={<Registration />} />
+          <Route path="/products_services" element={<ProductsAndServices />} />
+          <Route path="/contact" element={<AdminContactMessages />} />
+
 
           {/* Layout with public routes - individual pages protect themselves */}
           <Route path="/layout" element={<Layout />}>
-            <Route path="products" element={<Products />} />
-            {/* Add other routes here - they'll protect themselves */}
-            <Route path="orders" element={<div>Orders Page</div>} />
-            <Route path="customers" element={<div>Customers Page</div>} />
-          </Route>
+  {/* Add this line for the dashboard */}
+  <Route index element={<AdminDashboard />} />
+  <Route path="products" element={<Products />} />
+  <Route path="orders" element={<AdminOrders />} />
+  <Route path="customers" element={<AdminCustomers />} />
+  <Route path="contacts" element={<AdminContactMessages />} />
+</Route>
         </Routes>
       </Router>
     </NotificationProvider>

@@ -1,24 +1,76 @@
-// Header.js
-import React from "react";
-import "./css/Home.css"; // You might want to create a separate CSS file
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import "./css/Home.css";
 
 const Header = () => {
+  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+  const wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+  
+  const cartItemCount = cart.reduce(
+    (sum, item) => sum + (item.quantity || 1),
+    0
+  );
+  const wishlistItemCount = wishlist.length;
+  
+  const [showAccountDropdown, setShowAccountDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+  const navigate = useNavigate();
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowAccountDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("cart");
+    localStorage.removeItem("wishlist");
+    navigate("/login");
+    setShowAccountDropdown(false);
+  };
+
+  const handleOrdersClick = () => {
+    navigate("/order-confirmation");
+    setShowAccountDropdown(false);
+  };
+
+  const handleAccountClick = () => {
+    setShowAccountDropdown(!showAccountDropdown);
+  };
+
+  const handleWishlistClick = () => {
+    navigate("/wishlist");
+  };
+
+  const isLoggedIn = localStorage.getItem("token");
+
   return (
     <>
       {/* Banner / Header */}
       <div className="home-promo-banner">
-        Get Wells Fargo Sponsored Financing! Buy Now, Pay Later from 3 to 60
-        months
+        Get Wells Fargo Sponsored Financing! Buy Now, Pay Later from 3 to 60 months
       </div>
 
       {/* Navigation Bar */}
       <header className="home-header">
         <div className="home-logo-section">
-          <img
-            src="../static/img/nexdawn_logo.jpg"
-            alt="NexDawn Solutions Logo"
-            className="home-logo"
-          />
+          <a href="/">
+            <img
+              src="../static/img/nexdawn_logo.jpg"
+              alt="NexDawn Solutions Logo"
+              className="home-logo"
+            />
+          </a>
           <div className="home-brand-name">
             <h1>
               NexDawn <span>Solutions</span>
@@ -26,23 +78,68 @@ const Header = () => {
           </div>
         </div>
 
-        <nav className="home-nav-links">
-          <a href="#">Home</a>
-          <a href="#">Computers</a>
-          <a href="#">Accessories</a>
-          <a href="#">Stationery</a>
-        </nav>
+        {/* Amazon-style Search Bar */}
+        <div className="home-search-container">
+          <div className="search-wrapper">
+            <input
+              id="header-search-input"
+              type="text"
+              placeholder="Search for products and categories..."
+              className="home-search-input"
+            />
+            <button className="search-button">🔍</button>
+          </div>
+          <div
+            id="header-search-suggestions"
+            className="search-suggestions"
+          ></div>
+        </div>
 
         <div className="home-header-actions">
-          <a href="#" className="icon">
+          <button className="icon wishlist-icon" onClick={handleWishlistClick}>
+            <span className="icon-heart">❤️</span>
             Wishlist
-          </a>
-          <a href="/cart" className="icon">
+            {wishlistItemCount > 0 && (
+              <span className="wishlist-count-badge">{wishlistItemCount}</span>
+            )}
+          </button>
+          <a href="/cart" className="icon cart-icon">
+            <span className="icon-cart">🛒</span>
             Cart
+            {cartItemCount > 0 && (
+              <span className="cart-count-badge">{cartItemCount}</span>
+            )}
           </a>
-          <a href="#" className="icon">
-            Account
-          </a>
+          <div className="account-dropdown" ref={dropdownRef}>
+            <button className="icon account-icon" onClick={handleAccountClick}>
+              <span className="icon-account">👤</span>
+              Account
+            </button>
+            {showAccountDropdown && (
+              <div className="dropdown-menu">
+                {isLoggedIn ? (
+                  <>
+                    <button
+                      onClick={handleOrdersClick}
+                      className="dropdown-item"
+                    >
+                      📦 Orders
+                    </button>
+                    <button onClick={handleLogout} className="dropdown-item">
+                      🚪 Logout
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => navigate("/login")}
+                    className="dropdown-item"
+                  >
+                    🔐 Login
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </header>
     </>

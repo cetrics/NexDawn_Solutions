@@ -35,25 +35,22 @@ const Layout = () => {
         </div>
 
         <nav className="sidebar-nav">
-          <NavLink to="/layout" end>
-            <FaHome /> Dashboard
-          </NavLink>
-          <NavLink to="/layout/products">
-            <FaBox /> Products
-          </NavLink>
-          <NavLink to="/layout/orders">
-            <FaShoppingCart /> Orders
-          </NavLink>
-          <NavLink to="/layout/customers">
-            <FaUsers /> Customers
-          </NavLink>
-          <NavLink to="#">
-            <FaChartBar /> Reports
-          </NavLink>
-          <NavLink to="#">
-            <FaCog /> Settings
-          </NavLink>
-        </nav>
+  <NavLink to="/layout" end onClick={handleLinkClick}>
+    <FaHome /> Dashboard
+  </NavLink>
+  <NavLink to="/layout/products" onClick={handleLinkClick}>
+    <FaBox /> Products
+  </NavLink>
+  <NavLink to="/layout/orders" onClick={handleLinkClick}>
+    <FaShoppingCart /> Orders
+  </NavLink>
+  <NavLink to="/layout/customers" onClick={handleLinkClick}>
+    <FaUsers /> Customers
+  </NavLink>
+  <NavLink to="/layout/contacts" onClick={handleLinkClick}>
+    <FaUsers /> Contact Messages
+  </NavLink>
+</nav>
       </aside>
 
       {/* Main Content */}

@@ -1,7 +1,10 @@
 import React, { useState } from "react";
+import { toast } from "react-toastify";
 import "./css/Contact.css";
+import Header from "./Header";
+import Footer from "./Footer";
 
-const Contact = () => {
+const ContactMessage = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -32,20 +35,22 @@ const Contact = () => {
       const result = await response.json();
 
       if (result.success) {
-        alert("Message sent successfully! We will get back to you soon.");
+        toast.success("Message sent successfully! We will get back to you soon.");
         setFormData({ name: "", email: "", message: "" });
       } else {
-        alert(`Failed to send message: ${result.message}`);
+        toast.error(`Failed to send message: ${result.message}`);
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Error sending message. Please try again.");
+      toast.error("Error sending message. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
+    <div>
+    <Header />    
     <div className="contact-container">
       <div className="contact-header">
         <h1>Contact Us</h1>
@@ -123,7 +128,9 @@ const Contact = () => {
         </div>
       </div>
     </div>
+    <Footer />
+    </div>
   );
 };
 
-export default Contact;
+export default ContactMessage;
