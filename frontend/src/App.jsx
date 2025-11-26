@@ -8,6 +8,7 @@ import Login from "./pages/Login.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import { NotificationProvider } from "./pages/NotificationContext.jsx";
+import { SearchProvider } from "./pages/SearchContext.jsx"; // ADD THIS IMPORT
 import Layout from "./pages/Layout.jsx";
 import Products from "./pages/Products.jsx";
 import CartPage from "./pages/CartPage.jsx";
@@ -21,6 +22,7 @@ import ContactMessage from "./pages/ContactMessage.jsx";
 import AdminOrders from "./pages/AdminOrders.jsx";
 import AdminCustomers from "./pages/AdminCustomers.jsx";
 import AdminContactMessages from "./pages/AdminContactMessages.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
 
 // Axios interceptors
 axios.interceptors.request.use(
@@ -46,57 +48,57 @@ axios.interceptors.response.use(
 
 const App = () => {
   return (
-    <NotificationProvider>
-      <Router>
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={true}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="colored"
-          toastStyle={{
-            backgroundColor: "#6a0dad",
-            color: "#fff",
-            fontWeight: "500",
-            borderRadius: "12px",
-          }}
-        />
+    <SearchProvider> {/* ADD THIS PROVIDER */}
+      <NotificationProvider>
+        <Router>
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop={true}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+            toastStyle={{
+              backgroundColor: "#6a0dad",
+              color: "#fff",
+              fontWeight: "500",
+              borderRadius: "12px",
+            }}
+          />
 
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/" element={<Home />} />
-          <Route path="/cart" element={<CartPage />} />
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/cart" element={<CartPage />} />
 
-          {/* Public routes that handle their own protection */}
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/add-address" element={<AddressesPage />} />
-          <Route path="/order-confirmation" element={<OrdersPage />} />
-          <Route path="/wishlist" element={<Wishlist />} />
-          <Route path="/signup" element={<Registration />} />
-          <Route path="/products_services" element={<ProductsAndServices />} />
-          <Route path="/contact" element={<AdminContactMessages />} />
+            {/* Public routes that handle their own protection */}
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/add-address" element={<AddressesPage />} />
+            <Route path="/order-confirmation" element={<OrdersPage />} />
+            <Route path="/wishlist" element={<Wishlist />} />
+            <Route path="/signup" element={<Registration />} />
+            <Route path="/products_services" element={<ProductsAndServices />} />
+            <Route path="/contact" element={<ContactMessage />} />
 
-
-          {/* Layout with public routes - individual pages protect themselves */}
-          <Route path="/layout" element={<Layout />}>
-  {/* Add this line for the dashboard */}
-  <Route index element={<AdminDashboard />} />
-  <Route path="products" element={<Products />} />
-  <Route path="orders" element={<AdminOrders />} />
-  <Route path="customers" element={<AdminCustomers />} />
-  <Route path="contacts" element={<AdminContactMessages />} />
-</Route>
-        </Routes>
-      </Router>
-    </NotificationProvider>
+            {/* Layout with public routes - individual pages protect themselves */}
+            <Route path="/layout" element={<Layout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="products" element={<Products />} />
+              <Route path="orders" element={<AdminOrders />} />
+              <Route path="customers" element={<AdminCustomers />} />
+              <Route path="contacts" element={<AdminContactMessages />} />
+            </Route>
+          </Routes>
+        </Router>
+      </NotificationProvider>
+    </SearchProvider> // CLOSE THE PROVIDER
   );
 };
 

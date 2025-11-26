@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Header from "./Header";
 import "./css/Wishlist.css";
+import Footer from "./Footer";
 
 const Wishlist = () => {
   const [wishlist, setWishlist] = useState([]);
@@ -182,6 +183,7 @@ const Wishlist = () => {
           )}
         </section>
       </div>
+      <Footer />
     </div>
   );
 };

@@ -5,6 +5,7 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import Header from "./Header";
+import Footer from "./Footer";
 
 // Star Rating Component
 const StarRating = ({ rating, size = 16 }) => {
@@ -66,16 +67,18 @@ const CartPage = () => {
   }, [cart]);
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("cart")) || [];
-    setCart(stored);
+  const stored = JSON.parse(localStorage.getItem("cart")) || [];
+  setCart(stored);
 
-    const storedSelected = JSON.parse(localStorage.getItem("selectedItems"));
-    if (storedSelected) {
-      setSelectedItems(storedSelected);
-    } else {
-      setSelectedItems([]);
-    }
-
+  const storedSelected = JSON.parse(localStorage.getItem("selectedItems"));
+  if (storedSelected) {
+    setSelectedItems(storedSelected);
+  } else {
+    // Automatically select all items when none are selected
+    const allItemIds = stored.map(item => item.id);
+    setSelectedItems(allItemIds);
+    localStorage.setItem("selectedItems", JSON.stringify(allItemIds));
+  }
     const storedSaved = JSON.parse(localStorage.getItem("savedItems")) || [];
     setSavedItems(storedSaved);
 
@@ -756,6 +759,7 @@ const CartPage = () => {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 };

@@ -800,3 +800,64 @@
     justify-content: flex-start;
     min-width: 180px;
 }
+
+/* Add these to your AdminOrders.css file */
+
+.customer-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.customer-name {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.customer-email {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.customer-full-name {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.address-details {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    white-space: pre-line;
+}
+
+.order-summary {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 2px solid #e9ecef;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.summary-row.total {
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-top: 1px solid #dee2e6;
+    padding-top: 8px;
+    margin-top: 8px;
+}
+
+.item-price,
+.item-total {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.item-total {
+    font-weight: 600;
+    color: #2c3e50;
+}

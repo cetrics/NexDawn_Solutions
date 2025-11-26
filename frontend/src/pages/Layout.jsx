@@ -23,6 +23,12 @@ const Layout = () => {
     localStorage.clear();
     navigate("/login");
   };
+  const handleLinkClick = () => {
+  if (window.innerWidth <= 768) {
+    setIsSidebarOpen(false);
+  }
+};
+
 
   return (
     <div className="admin-dashboard">

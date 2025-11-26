@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { useLocation } from "react-router-dom";
 import Header from "./Header";
 import Footer from "./Footer";
+import { useSearch } from "./SearchContext"; // ADD THIS IMPORT
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -22,6 +23,7 @@ const CategorySection = ({
 }) => {
   const [showAll, setShowAll] = useState(forceExpand);
   const navigate = useNavigate();
+  
 
   useEffect(() => {
     if (forceExpand) setShowAll(true);
@@ -62,11 +64,14 @@ const CategorySection = ({
 
 const Home = () => {
   const navigate = useNavigate();
+  const { searchTerm, clearSearch } = useSearch(); // ADD THIS HOOK
   const images = [
     "../static/img/hero4.PNG",
     "../static/img/hero5.PNG",
     "../static/img/hero4.PNG",
   ];
+  const [categories, setCategories] = useState([]);
+  const [showCategories, setShowCategories] = useState(false);
 
   const [current, setCurrent] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -94,11 +99,24 @@ const Home = () => {
     localStorage.setItem("wishlist", JSON.stringify(wishlist));
   }, [wishlist]);
 
-  // Handle URL parameters for category filtering
+  // Add this useEffect after your existing useEffects
+useEffect(() => {
+  fetch("/api/categories/with-products")
+    .then((res) => res.json())
+    .then((data) => {
+      setCategories(data);
+    })
+    .catch((err) => {
+      console.error("Failed to fetch categories:", err);
+    });
+}, []);
+
+  // Handle URL parameters for category filtering and search
   useEffect(() => {
     const categoryFromUrl = query.get("category");
     const scrollToCategory = query.get("scrollTo");
     const highlightId = query.get("highlight");
+    const searchFromUrl = query.get("search"); // ADD THIS
 
     if (categoryFromUrl) {
       setSelectedCategory(categoryFromUrl);
@@ -139,6 +157,11 @@ const Home = () => {
         }
       }, 200);
     }
+
+    // ADD THIS: Clear category filter when searching
+    if (searchFromUrl) {
+      setSelectedCategory("");
+    }
   }, [location.search, query]);
 
   // Fetch all products
@@ -173,6 +196,15 @@ const Home = () => {
         (product) =>
           product.category_name &&
           product.category_name.toLowerCase() === selectedCategory.toLowerCase()
+      )
+    : [];
+
+  // ADD THIS: Filter products for search
+  const searchResults = searchTerm
+    ? allProducts.filter(product =>
+        product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.category_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.description?.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : [];
 
@@ -311,7 +343,6 @@ const Home = () => {
         autoClose: 2000,
       });
       return;
-     // Stop execution if out of stock
     }
 
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -328,6 +359,14 @@ const Home = () => {
     }
 
     localStorage.setItem("cart", JSON.stringify(cart));
+
+    // Automatically select the product when added to cart
+    const selectedItems = JSON.parse(localStorage.getItem("selectedItems")) || [];
+    if (!selectedItems.includes(productToAdd.id)) {
+      const updatedSelectedItems = [...selectedItems, productToAdd.id];
+      localStorage.setItem("selectedItems", JSON.stringify(updatedSelectedItems));
+    }
+
     toast.success(`${product.name} added to cart`, {
       position: "top-right",
       autoClose: 2000,
@@ -353,68 +392,110 @@ const Home = () => {
   return (
     <div className="home-container">
       <Header />
-      
-      {/* Category Filter Banner */}
-      {selectedCategory && (
-        <div className="category-filter-banner">
-          <div className="category-filter-info">
-            <span>Showing products in: </span>
-            <strong>{selectedCategory}</strong>
-            <button 
-              className="clear-filter-btn"
-              onClick={() => {
-                setSelectedCategory("");
-                navigate("/");
-              }}
-            >
-              ✕ Clear Filter
-            </button>
+
+      {/* Hero Section with rotating background */}
+    {/* Hero Section with rotating background and categories - HIDE WHEN SEARCHING */}
+{!searchTerm && (
+  <section className="home-hero home-hero-background">
+    <div className="home-hero-image-container">
+      <img
+        src={images[current]}
+        alt="Hero background"
+        className={`home-hero-image ${imageLoaded ? "loaded" : ""}`}
+        onLoad={() => setImageLoaded(true)}
+        onError={(e) => {
+          console.error("Failed to load hero image:", e.target.src);
+          e.target.src = "/static/images/fallback.jpg";
+        }}
+      />
+    </div>
+
+    <div className="home-hero-content">
+      <h2>Bringing Technology & Productivity Together</h2>
+      <p>
+        Discover computers, accessories, and stationery solutions for your
+        personal and business needs.
+      </p>
+
+      <div className="home-hero-buttons">
+        <button
+          className="home-btn home-btn-primary"
+          onClick={() => navigate("/products_services")}
+        >
+          Products & Services
+        </button>
+        <button
+          className="home-btn home-btn-secondary"
+          onClick={() => navigate("/contact")}
+        >
+          Contact Us
+        </button>
+        {/* ADD THIS BROWSE CATEGORIES BUTTON */}
+        <button
+          className="home-btn home-btn-tertiary"
+          onClick={() => setShowCategories(prev => !prev)}
+        >
+          {showCategories ? "Hide Categories" : "Browse Categories"}
+        </button>
+      </div>
+
+      {/* ADD THIS CATEGORIES DROPDOWN SECTION */}
+      {showCategories && categories.length > 0 && (
+        <div className="home-hero-categories">
+          <div className="categories-grid">
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                className="category-chip"
+                onClick={() => {
+                  setSelectedCategory(category.name);
+                  setShowCategories(false);
+                  navigate(`/?category=${encodeURIComponent(category.name)}`);
+                }}
+              >
+                <span className="category-name">{category.name}</span>
+                <span className="product-count">({category.product_count})</span>
+              </button>
+            ))}
           </div>
         </div>
       )}
-
-      {/* Hero Section with rotating background */}
-      <section className="home-hero home-hero-background">
-        <div className="home-hero-image-container">
-          <img
-            src={images[current]}
-            alt="Hero background"
-            className={`home-hero-image ${imageLoaded ? "loaded" : ""}`}
-            onLoad={() => setImageLoaded(true)}
-            onError={(e) => {
-              console.error("Failed to load hero image:", e.target.src);
-              e.target.src = "/static/images/fallback.jpg";
-            }}
-          />
-        </div>
-
-        <div className="home-hero-content">
-          <h2>Bringing Technology & Productivity Together</h2>
-          <p>
-            Discover computers, accessories, and stationery solutions for your
-            personal and business needs.
-          </p>
-          <div className="home-hero-buttons">
-            <button
-              className="home-btn home-btn-primary"
-              onClick={() => navigate("/products_services")}
-            >
-              Products & Services
-            </button>
-            <button
-              className="home-btn home-btn-secondary"
-              onClick={() => navigate("/contact")}
-            >
-              Contact Us
-            </button>
-          </div>
-        </div>
-      </section>
+    </div>
+  </section>
+)}
 
       {/* Product Sections */}
       <div className="homepage">
+        {/* Show search results when searching - ADD THIS SECTION */}
+        {searchTerm && !loading && (
+          <>
+            {searchResults.length > 0 ? (
+              <CategorySection
+                category={`Search Results for "${searchTerm}"`}
+                products={searchResults}
+                renderProductCard={renderProductCard}
+                isFiltered={true}
+              />
+            ) : (
+              <div className="no-products-message">
+                <h2>No products found for "{searchTerm}"</h2>
+                <p>Please try a different search term.</p>
+                <button 
+                  className="home-add-to-cart-btn"
+                  onClick={() => {
+                    clearSearch();
+                    navigate("/");
+                  }}
+                >
+                  View All Products
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
         {/* Show filtered products when category is selected */}
-        {selectedCategory && !loading && (
+        {!searchTerm && selectedCategory && !loading && (
           <>
             {filteredProducts.length > 0 ? (
               <CategorySection
@@ -441,8 +522,8 @@ const Home = () => {
           </>
         )}
 
-        {/* Show all products when no category is selected */}
-        {!selectedCategory && (
+        {/* Show all products when no search or category is selected */}
+        {!searchTerm && !selectedCategory && (
           <>
             {/* Top Deals Section */}
             {!loading && topDeals.length > 0 && (

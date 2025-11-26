@@ -21,12 +21,32 @@ const AddAddressPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Get user ID from localStorage
+  const getUserId = () => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    return user.id;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check if user is authenticated and get user ID
+    const userId = getUserId();
+    if (!userId) {
+      alert("Please log in to add an address");
+      navigate("/login");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const response = await axios.post("/api/addresses/", newAddress, {
+      const requestData = {
+        ...newAddress,
+        user_id: userId  // Add user_id to the request body
+      };
+
+      const response = await axios.post("/api/addresses/", requestData, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -36,7 +56,11 @@ const AddAddressPage = () => {
       setSuccessPopup(true);
     } catch (err) {
       console.error("Error adding address:", err);
-      alert("Failed to add address. Please try again.");
+      if (err.response?.data?.error === "Missing required fields") {
+        alert(`Missing fields: ${err.response.data.missing_fields.join(", ")}`);
+      } else {
+        alert("Failed to add address. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }

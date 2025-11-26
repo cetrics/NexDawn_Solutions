@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./css/Home.css";
-
+import UniversalSearch from './UniversalSearch';
 const Header = () => {
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
   const wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
@@ -66,7 +66,7 @@ const Header = () => {
         <div className="home-logo-section">
           <a href="/">
             <img
-              src="../static/img/nexdawn_logo.jpg"
+              src="../static/img/nexdawn_logo.png"
               alt="NexDawn Solutions Logo"
               className="home-logo"
             />
@@ -80,20 +80,8 @@ const Header = () => {
 
         {/* Amazon-style Search Bar */}
         <div className="home-search-container">
-          <div className="search-wrapper">
-            <input
-              id="header-search-input"
-              type="text"
-              placeholder="Search for products and categories..."
-              className="home-search-input"
-            />
-            <button className="search-button">🔍</button>
-          </div>
-          <div
-            id="header-search-suggestions"
-            className="search-suggestions"
-          ></div>
-        </div>
+  <UniversalSearch />
+</div>
 
         <div className="home-header-actions">
           <button className="icon wishlist-icon" onClick={handleWishlistClick}>

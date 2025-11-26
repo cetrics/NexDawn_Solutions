@@ -26,37 +26,40 @@ const Login = () => {
   }, [navigate]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+  e.preventDefault();
+  setLoading(true);
+  setError("");
 
-    try {
-      console.log("➡️ Sending login request:", email);
+  try {
+    const response = await axios.post("/api/login", {
+      email,
+      password,
+    });
 
-      const response = await axios.post("/api/login", {
-        email,
-        password,
-      });
+    if (response.data.success) {
+      const user = response.data.user;
 
-      console.log("✅ Login response:", response.data);
+      // Save token and user
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(user));
 
-      if (response.data.success) {
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-
-        // Navigate to /layout instead of "/"
+      // Redirect based on user type
+      if (user.user_type === "admin") {
         navigate("/layout", { replace: true });
       } else {
-        setError(response.data.message || "Login failed");
-        console.warn("⚠️ Login failed:", response.data.message);
+        navigate("/", { replace: true });
       }
-    } catch (err) {
-      console.error("❌ Login error:", err.response?.data || err.message);
-      setError(err.response?.data?.message || "An error occurred during login");
-    } finally {
-      setLoading(false);
+
+    } else {
+      setError(response.data.message || "Login failed");
     }
-  };
+  } catch (err) {
+    setError(err.response?.data?.message || "An error occurred during login");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="login-container">

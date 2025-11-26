@@ -308,12 +308,12 @@
 }
 
 .checkout-btn-guest {
-  background: linear-gradient(135deg, #ffd700, #ffed4e) !important;
-  color: #1a1a1a !important;
+  background: linear-gradient(135deg, #007bff, #0056b3) !important;
+  color: white !important;
 }
 
 .checkout-btn-guest:hover:not(:disabled) {
-  background: linear-gradient(135deg, #ffed4e, #ffd700) !important;
+  background: linear-gradient(135deg, #007bff, #0056b3) !important;
 }
 
 /* Saved Items */

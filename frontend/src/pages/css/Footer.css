@@ -15,18 +15,29 @@
 /* Main Footer Content */
 .footer-content {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 40px;
     padding: 50px 0 30px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Footer sections */
+.footer-section {
+    text-align: left;
+    display: block;
 }
 
 .footer-section h4 {
     color: #fff;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 600;
     margin-bottom: 20px;
     position: relative;
     padding-bottom: 8px;
+    text-align: left;
+    width: 100%;
 }
 
 .footer-section h4::after {
@@ -46,6 +57,8 @@
     align-items: center;
     gap: 12px;
     margin-bottom: 15px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
 }
 
 .footer-logo {
@@ -58,6 +71,7 @@
     font-weight: 700;
     margin: 0;
     color: #fff;
+    text-align: left;
 }
 
 .footer-brand-name span {
@@ -66,15 +80,18 @@
 
 .footer-description {
     color: #cbd5e0;
-    font-size: 0.9rem;
-    line-height: 1.5;
+    font-size: 1rem;
+    line-height: 1.6;
     margin-bottom: 20px;
+    text-align: left;
+    max-width: 300px;
 }
 
 /* Social Links */
 .footer-social {
     display: flex;
     gap: 12px;
+    justify-content: flex-start;
 }
 
 .social-link {
@@ -102,6 +119,9 @@
     list-style: none;
     padding: 0;
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 .footer-links li {
@@ -111,9 +131,10 @@
 .footer-links a {
     color: #cbd5e0;
     text-decoration: none;
-    font-size: 0.9rem;
+    font-size: 1rem;
     transition: all 0.3s ease;
     display: block;
+    text-align: left;
 }
 
 .footer-links a:hover {
@@ -122,27 +143,39 @@
 }
 
 /* Contact Info */
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
 .contact-info p {
     color: #cbd5e0;
-    font-size: 0.9rem;
-    margin-bottom: 8px;
+    font-size: 1rem;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
     gap: 8px;
+    justify-content: flex-start;
+    text-align: left;
 }
 
 /* Footer Bottom */
 .footer-bottom {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     padding: 20px 0;
+    text-align: center;
+    width: 100%;
 }
 
 .footer-bottom-content {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     flex-wrap: wrap;
     gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .copyright p {
@@ -154,6 +187,7 @@
 .footer-bottom-links {
     display: flex;
     gap: 25px;
+    justify-content: center;
 }
 
 .footer-bottom-links a {
@@ -172,6 +206,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    justify-content: center;
 }
 
 .payment-methods span {
@@ -197,13 +232,8 @@
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 1200px) {
     .footer-content {
-        grid-template-columns: 2fr 1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr;
         gap: 30px;
-    }
-
-    .footer-section:last-child {
-        grid-column: 1 / -1;
-        margin-top: 20px;
     }
 }
 
@@ -214,18 +244,9 @@
         padding: 40px 0 20px;
     }
 
-    .footer-section:first-child {
-        grid-column: 1 / -1;
-    }
-
-    .footer-bottom-content {
+    .footer-logo-section {
         flex-direction: column;
         text-align: center;
-        gap: 15px;
-    }
-
-    .footer-bottom-links {
-        justify-content: center;
     }
 }
 
@@ -236,13 +257,9 @@
         padding: 30px 0 20px;
     }
 
-    .footer-logo-section {
-        justify-content: center;
-        text-align: center;
-    }
-
-    .footer-social {
-        justify-content: center;
+    .footer-bottom-content {
+        flex-direction: column;
+        gap: 15px;
     }
 
     .footer-bottom-links {

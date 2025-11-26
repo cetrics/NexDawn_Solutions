@@ -49,20 +49,6 @@ const Footer = () => {
               Bringing Technology & Productivity Together. Your trusted partner
               for computers, accessories, and stationery solutions.
             </p>
-            <div className="footer-social">
-              <a href="#" className="social-link">
-                📘
-              </a>
-              <a href="#" className="social-link">
-                🐦
-              </a>
-              <a href="#" className="social-link">
-                📷
-              </a>
-              <a href="#" className="social-link">
-                💼
-              </a>
-            </div>
           </div>
 
           {/* Quick Links */}
@@ -73,13 +59,10 @@ const Footer = () => {
                 <Link to="/">All Products</Link>
               </li>
               <li>
-                <Link to="/about">About Us</Link>
+                <Link to="/products_services">Products & Services</Link>
               </li>
               <li>
                 <Link to="/contact">Contact</Link>
-              </li>
-              <li>
-                <Link to="/support">Support</Link>
               </li>
             </ul>
           </div>
@@ -125,15 +108,6 @@ const Footer = () => {
           <div className="footer-bottom-content">
             <div className="copyright">
               <p>&copy; 2025 NexDawn Solutions. All rights reserved.</p>
-            </div>
-            <div className="payment-methods">
-              <span>We accept:</span>
-              <div className="payment-icons">
-                <span>💳</span>
-                <span>📱</span>
-                <span>🏦</span>
-                <span>🔗</span>
-              </div>
             </div>
           </div>
         </div>

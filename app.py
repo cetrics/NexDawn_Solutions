@@ -199,7 +199,6 @@ def forgot_password():
             cursor.close()
             conn.close()
 
-#  LOGIN route
 @app.route("/api/login", methods=["POST"])
 def login():
     conn = get_db_connection()
@@ -215,37 +214,40 @@ def login():
             return jsonify({"success": False, "message": "Email and password required"}), 400
 
         cursor = conn.cursor(dictionary=True)
-        # ✅ SELECT phone and other fields you need
-        cursor.execute("SELECT id, username, email, password, phone, first_name, last_name FROM users WHERE email = %s", (email,))
+        cursor.execute("""
+            SELECT id, username, email, password, phone, first_name,
+                   last_name, user_type
+            FROM users WHERE email = %s
+        """, (email,))
         user = cursor.fetchone()
 
         if not user or not check_password_hash(user["password"], password):
             return jsonify({"success": False, "message": "Invalid email or password"}), 401
 
-        # ✅ Generate JWT token with phone and other user data
+        # ONE TOKEN ONLY 🎯
         access_token = create_access_token(
             identity=str(user["id"]),
             additional_claims={
                 "email": user["email"],
-                "phone": user["phone"] if user["phone"] else "",  # ✅ Include phone
-                "username": user["username"] if user["username"] else "",
-                "first_name": user["first_name"] if user["first_name"] else "",
-                "last_name": user["last_name"] if user["last_name"] else ""
+                "phone": user.get("phone", ""),
+                "username": user.get("username", ""),
+                "first_name": user.get("first_name", ""),
+                "last_name": user.get("last_name", ""),
+                "user_type": user["user_type"]  # ⭐ ADD THIS
             }
         )
 
-        # Remove password before sending user data
         del user["password"]
 
         return jsonify({
             "success": True,
             "message": "Login successful",
             "token": access_token,
-            "user": user,  # This also includes phone now
+            "user": user,
         }), 200
 
     except Exception as e:
-        print(f" Login error: {e}")
+        print("Login error:", e)
         return jsonify({"success": False, "message": "Internal server error"}), 500
 
     finally:
@@ -326,14 +328,31 @@ def get_products():
 
     try:
         cursor = conn.cursor(dictionary=True)
-
-        # ✅ Add brand and description to the SELECT statement
-        cursor.execute("""
+        
+        # Get search parameter from query string
+        search = request.args.get('search', '')
+        
+        # Base query
+        base_query = """
             SELECT p.id, p.name, p.description, p.price, p.discount, p.stock_quantity, 
                    p.image_url, p.category_id, p.brand, c.name AS category_name
             FROM products p
             LEFT JOIN categories c ON p.category_id = c.id
-        """)
+        """
+        
+        # Add WHERE clause if search parameter is provided
+        if search:
+            base_query += """
+                WHERE p.name LIKE %s 
+                OR p.description LIKE %s 
+                OR p.brand LIKE %s 
+                OR c.name LIKE %s
+            """
+            search_term = f"%{search}%"
+            cursor.execute(base_query, (search_term, search_term, search_term, search_term))
+        else:
+            cursor.execute(base_query)
+            
         products = cursor.fetchall()
 
         for product in products:
@@ -725,7 +744,7 @@ def add_category():
 
 @app.route("/api/addresses/", methods=["POST"])
 def add_address():
-    """Add a new address - simplified without authentication"""
+    """Add a new address - get user_id from request body"""
     try:
         # Get request body
         data = request.get_json()
@@ -733,8 +752,8 @@ def add_address():
         # Debug: Log the received data
         print(f"Received address data: {data}")
 
-        # Validate required fields
-        required_fields = ["contact_name", "contact_phone", "address_line1", "town", "county", "postal_code", "country"]
+        # Validate required fields including user_id
+        required_fields = ["user_id", "contact_name", "contact_phone", "address_line1", "town", "county", "postal_code", "country"]
         missing_fields = [field for field in required_fields if not data.get(field)]
         
         if missing_fields:
@@ -743,9 +762,7 @@ def add_address():
                 "missing_fields": missing_fields
             }), 422
 
-        # For demo purposes, using a default user_id
-        # In a real app, you'd get this from session or request parameters
-        user_id = data.get("user_id", 1)  # Default to user 1 for testing
+        user_id = data["user_id"]
 
         conn = get_db_connection()
         if not conn:
@@ -753,7 +770,7 @@ def add_address():
 
         cursor = conn.cursor()
 
-        # Insert the address
+        # Insert the address with user_id from request body
         cursor.execute("""
             INSERT INTO delivery_addresses
             (user_id, address_type, contact_name, contact_phone, address_line1, 
@@ -780,7 +797,7 @@ def add_address():
         cursor.close()
         conn.close()
 
-        print(f"✅ Address added successfully, address_id: {new_id}")
+        print(f"✅ Address added successfully for user {user_id}, address_id: {new_id}")
         return jsonify({
             "success": True,
             "message": "Address added successfully", 
@@ -793,7 +810,7 @@ def add_address():
             "success": False,
             "error": str(e)
         }), 500
-
+        
 @app.route("/api/addresses/<int:user_id>", methods=["GET"])
 def get_addresses(user_id):
     """Get all addresses for a user"""
@@ -1308,7 +1325,7 @@ def get_all_orders():
     try:
         cursor = conn.cursor(dictionary=True)
 
-        # Get all orders with user information
+        # Get all orders with user information including delivery address details
         cursor.execute("""
             SELECT 
                 o.id,
@@ -1318,6 +1335,17 @@ def get_all_orders():
                 o.status,
                 o.created_at,
                 u.email as user_email,
+                u.first_name,
+                u.last_name,
+                u.phone,
+                da.contact_name,
+                da.contact_phone,
+                da.address_line1,
+                da.address_line2,
+                da.town,
+                da.county,
+                da.postal_code,
+                da.country,
                 (
                     SELECT GROUP_CONCAT(CONCAT(p.name, ' x', oi.quantity) SEPARATOR ', ')
                     FROM order_items oi
@@ -1326,6 +1354,7 @@ def get_all_orders():
                 ) AS items_summary
             FROM orders o
             LEFT JOIN users u ON u.id = o.user_id
+            LEFT JOIN delivery_addresses da ON da.address_id = o.address_id
             ORDER BY o.created_at DESC
         """)
         orders = cursor.fetchall()
@@ -1339,6 +1368,7 @@ def get_all_orders():
                     oi.order_id,
                     p.id AS product_id,
                     p.name AS title,
+                    p.price,
                     oi.quantity,
                     (
                         SELECT pi.image_filename
@@ -1361,6 +1391,7 @@ def get_all_orders():
                 by_order[r["order_id"]].append({
                     "product_id": r["product_id"],
                     "title": r["title"],
+                    "price": float(r["price"]) if r["price"] else 0,
                     "quantity": r["quantity"],
                     "image": image_url,
                 })
@@ -1376,10 +1407,12 @@ def get_all_orders():
         return jsonify(orders)
 
     except Error as e:
+        print(f"Database error: {str(e)}")
         return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
         conn.close()
+
 
 @app.route("/api/admin/orders/<order_number>/status", methods=["PUT"])
 def update_order_status(order_number):

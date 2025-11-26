@@ -11,6 +11,16 @@ const AdminOrders = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
+
+  useEffect(() => {
+  const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!token || !user || user.user_type !== "admin") {
+    navigate("/login", { replace: true });
+  }
+}, []);
+
   useEffect(() => {
     fetchAllOrders();
   }, []);
@@ -71,7 +81,9 @@ const AdminOrders = () => {
         (order) =>
           order.order_number?.toLowerCase().includes(query) ||
           order.user_email?.toLowerCase().includes(query) ||
-          order.items_summary?.toLowerCase().includes(query)
+          order.items_summary?.toLowerCase().includes(query) ||
+          (order.first_name && order.first_name.toLowerCase().includes(query)) ||
+          (order.last_name && order.last_name.toLowerCase().includes(query))
       );
     }
 
@@ -113,6 +125,14 @@ const AdminOrders = () => {
       archived: "status-archived",
     };
     return statusMap[status?.toLowerCase()] || "status-pending";
+  };
+
+  // Get full customer name
+  const getCustomerName = (order) => {
+    if (order.first_name || order.last_name) {
+      return `${order.first_name || ''} ${order.last_name || ''}`.trim();
+    }
+    return "N/A";
   };
 
   // Statistics for all statuses
@@ -176,7 +196,7 @@ const AdminOrders = () => {
         <div className="search-box">
           <input
             type="text"
-            placeholder="Search by order number, email..."
+            placeholder="Search by order number, email, name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -216,7 +236,10 @@ const AdminOrders = () => {
               {filteredOrders.map((order) => (
                 <tr key={order.order_number}>
                   <td className="order-number">{order.order_number}</td>
-                  <td className="customer-info">{order.user_email || "N/A"}</td>
+                  <td className="customer-info">
+                    <div className="customer-name">{getCustomerName(order)}</div>
+                    <div className="customer-email">{order.user_email || "N/A"}</div>
+                  </td>
                   <td className="order-amount">
                     {formatCurrency(order.total_amount)}
                   </td>
@@ -306,10 +329,67 @@ const AdminOrders = () => {
                 <div className="detail-section">
                   <h3>Customer Information</h3>
                   <div className="detail-row">
+                    <label>First Name:</label>
+                    <span>{selectedOrder.first_name || "N/A"}</span>
+                  </div>
+                  <div className="detail-row">
+                    <label>Last Name:</label>
+                    <span>{selectedOrder.last_name || "N/A"}</span>
+                  </div>
+                  <div className="detail-row">
+                    <label>Full Name:</label>
+                    <span className="customer-full-name">
+                      {getCustomerName(selectedOrder)}
+                    </span>
+                  </div>
+                  <div className="detail-row">
                     <label>Email:</label>
                     <span>{selectedOrder.user_email || "N/A"}</span>
                   </div>
+                  {selectedOrder.phone && (
+                    <div className="detail-row">
+                      <label>Phone:</label>
+                      <span>{selectedOrder.phone}</span>
+                    </div>
+                  )}
                 </div>
+                {/* ADD THE DELIVERY DETAILS SECTION HERE */}
+{selectedOrder.address_line1 && (
+  <div className="detail-section">
+    <h3>Delivery Details</h3>
+    <div className="detail-row">
+      <label>Contact Name:</label>
+      <span>{selectedOrder.contact_name || "N/A"}</span>
+    </div>
+    <div className="detail-row">
+      <label>Contact Phone:</label>
+      <span>{selectedOrder.contact_phone || "N/A"}</span>
+    </div>
+    <div className="detail-row">
+      <label>Address:</label>
+      <span className="address-full">
+        {selectedOrder.address_line1}
+        {selectedOrder.address_line2 && `, ${selectedOrder.address_line2}`}
+      </span>
+    </div>
+    <div className="detail-row">
+      <label>Town/City:</label>
+      <span>{selectedOrder.town || "N/A"}</span>
+    </div>
+    <div className="detail-row">
+      <label>County:</label>
+      <span>{selectedOrder.county || "N/A"}</span>
+    </div>
+    <div className="detail-row">
+      <label>Postal Code:</label>
+      <span>{selectedOrder.postal_code || "N/A"}</span>
+    </div>
+    <div className="detail-row">
+      <label>Country:</label>
+      <span>{selectedOrder.country || "N/A"}</span>
+    </div>
+  </div>
+)}
 
                 {selectedOrder.items && selectedOrder.items.length > 0 && (
                   <div className="detail-section">
@@ -326,12 +406,28 @@ const AdminOrders = () => {
                           </div>
                           <div className="item-details">
                             <div className="item-title">{item.title}</div>
+                            <div className="item-price">
+                              {formatCurrency(item.price)}
+                            </div>
                             <div className="item-quantity">
-                              Qty: {item.quantity}
+                              Quantity: {item.quantity}
+                            </div>
+                            <div className="item-total">
+                              Total: {formatCurrency(item.price * item.quantity)}
                             </div>
                           </div>
                         </div>
                       ))}
+                    </div>
+                    <div className="order-summary">
+                      <div className="summary-row">
+                        <label>Subtotal:</label>
+                        <span>{formatCurrency(selectedOrder.total_amount)}</span>
+                      </div>
+                      <div className="summary-row total">
+                        <label>Total Amount:</label>
+                        <span>{formatCurrency(selectedOrder.total_amount)}</span>
+                      </div>
                     </div>
                   </div>
                 )}

@@ -36,10 +36,13 @@
 
 .home-logo {
   height: 55px !important;
-  width: 55px !important;
+  width: auto !important;
+  /* Change from 55px to auto */
   margin-right: 10px !important;
-  background: linear-gradient(135deg, #007bff, #00c6ff);
-  border-radius: 50%;
+  background: transparent !important;
+  /* Remove the blue gradient */
+  border-radius: 0 !important;
+  /* Remove circular border */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1005,4 +1008,109 @@
   background: #6c757d !important;
   transform: none !important;
   box-shadow: none !important;
+}
+
+/* Hero Categories Styles */
+.home-hero-categories {
+  margin: 25px 0;
+  text-align: center;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.categories-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.category-chip {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid transparent;
+  border-radius: 25px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.category-chip:hover {
+  background: white;
+  border-color: #007bff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.category-name {
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.product-count {
+  background: #007bff;
+  color: white;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  min-width: 30px;
+}
+
+/* Third button style to match your existing buttons */
+.home-btn.home-btn-tertiary {
+  background: transparent;
+  border: 2px solid white;
+  color: white;
+}
+
+.home-btn.home-btn-tertiary:hover {
+  background: white;
+  color: #333;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .home-hero-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .home-hero-buttons .home-btn {
+    width: 200px;
+    margin: 5px 0;
+  }
+
+  .categories-grid {
+    gap: 8px;
+  }
+
+  .category-chip {
+    padding: 6px 12px;
+  }
+
+  .category-name {
+    font-size: 0.8rem;
+  }
+
+  .product-count {
+    font-size: 0.7rem;
+    padding: 1px 6px;
+  }
 }
