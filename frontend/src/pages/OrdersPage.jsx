@@ -3,6 +3,8 @@ import axios from "axios";
 import "./css/OrdersPage.css";
 import { useNavigate } from "react-router-dom";
 import Header from "./Header";
+import ReviewModal from "./ReviewModal";
+import ProductDetailsModal from "./ProductDetailsModal"; // Add this import
 
 const OrdersPage = () => {
   const [orders, setOrders] = useState([]);
@@ -12,6 +14,9 @@ const OrdersPage = () => {
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
+  const [reviewingOrder, setReviewingOrder] = useState(null); // Add this state
+  const [reviewedOrders, setReviewedOrders] = useState([]); // Track reviewed orders
+  const [viewingProduct, setViewingProduct] = useState(null); // Add this line
 
   const parseDateEAT = (d) => {
     if (!d) return null;
@@ -93,6 +98,50 @@ const OrdersPage = () => {
     }
   };
 
+  const handleViewProduct = async (productId, orderItem) => {
+    console.log("Viewing product ID:", productId);
+
+    try {
+      const response = await axios.get(`/api/products/${productId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log("Product API response:", response.data);
+
+      if (response.data.error) {
+        throw new Error(response.data.error);
+      }
+
+      // Use the exact same structure as Admin Products
+      const productData = response.data;
+
+      setViewingProduct(productData);
+    } catch (err) {
+      console.error("Error fetching product details:", err);
+
+      // Fallback using order item data
+      if (orderItem) {
+        const productData = {
+          // Match the API response structure
+          id: productId,
+          name: orderItem.title || orderItem.name || "Unknown Product",
+          price: orderItem.price || orderItem.unit_price || 0,
+          discount: orderItem.discount || 0,
+          description: orderItem.description || "No description available",
+          category_name: orderItem.category || "Uncategorized",
+          colors: orderItem.colors || [],
+          sizes: orderItem.sizes || [],
+          // IMPORTANT: Format images array the same way as API
+          images: orderItem.image ? [orderItem.image] : [],
+        };
+
+        setViewingProduct(productData);
+      } else {
+        alert("Product details could not be loaded.");
+      }
+    }
+  };
+
   const handleArchiveOrder = async (orderNumber) => {
     try {
       await axios.put(
@@ -112,16 +161,74 @@ const OrdersPage = () => {
     }
   };
 
+  const checkIfReviewed = async (orderNumber) => {
+    try {
+      // Get user_id from token or localStorage
+      const decoded = parseJwt(token);
+      const userId = decoded?.sub;
+
+      if (!userId) {
+        console.error("No user ID found");
+        return false;
+      }
+
+      const response = await axios.get(`/api/reviews/order/${orderNumber}`, {
+        params: { user_id: userId },
+      });
+      return response.data.has_reviewed;
+    } catch (err) {
+      console.error("Error checking review status:", err);
+      return false;
+    }
+  };
+
+  // Add function to handle review button click
+  const handleReviewClick = (order) => {
+    if (reviewedOrders.includes(order.order_number)) {
+      alert("You have already reviewed this order.");
+      return;
+    }
+    setReviewingOrder(order);
+  };
+
+  // Add function when review is submitted
+  const handleReviewSubmitted = (orderNumber) => {
+    setReviewedOrders((prev) => [...prev, orderNumber]);
+    // Optional: Update the order status or add a reviewed flag
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.order_number === orderNumber ? { ...o, has_reviewed: true } : o
+      )
+    );
+  };
+
   // Helpers - UPDATED to match your backend structure
   const normalizeItems = (order) => {
     if (!order) return [];
 
-    // Your backend provides 'items' array directly
-    if (Array.isArray(order.items)) return order.items;
+    if (Array.isArray(order.items)) {
+      return order.items.map((item, index) => ({
+        ...item,
+        // Try multiple possible product_id fields
+        product_id:
+          item.product_id ||
+          item.productId ||
+          item.id ||
+          `temp-${order.order_number}-${index}`,
+        // Ensure image is properly set
+        image: item.image || item.image_url || item.product_image,
+        // Ensure title/name is available
+        title: item.title || item.name || item.product_name,
+      }));
+    }
 
-    // Fallback for items_summary string
     if (order.items_summary) {
-      return [{ title: order.items_summary }];
+      return [
+        {
+          title: order.items_summary,
+          product_id: `summary-${order.order_number}`,
+        },
+      ];
     }
 
     return [];
@@ -409,20 +516,6 @@ const OrdersPage = () => {
                     </div>
 
                     <div className="order-actions">
-                      {order.status !== "cancelled" &&
-                        order.status !== "delivered" && (
-                          <button
-                            className="btn btn-primary"
-                            onClick={() =>
-                              navigate(
-                                `/order-confirmation/${order.order_number}/track`
-                              )
-                            }
-                          >
-                            Track package
-                          </button>
-                        )}
-
                       {order.status === "pending" ||
                       order.status === "confirmed" ? (
                         <button
@@ -433,25 +526,60 @@ const OrdersPage = () => {
                         </button>
                       ) : null}
 
-                      <button
-                        className="btn"
-                        onClick={() =>
-                          navigate(`/order-confirmation/${order.order_number}`)
-                        }
-                      >
-                        View details
-                      </button>
+                      {firstItem.product_id ? (
+                        <button
+                          className="btn"
+                          onClick={() => {
+                            console.log(
+                              "View Product clicked for item:",
+                              firstItem
+                            );
+                            console.log("Product ID:", firstItem.product_id);
+                            handleViewProduct(firstItem.product_id);
+                          }}
+                        >
+                          View Product
+                        </button>
+                      ) : (
+                        <button
+                          className="btn"
+                          onClick={() =>
+                            navigate(
+                              `/order-confirmation/${order.order_number}`
+                            )
+                          }
+                        >
+                          Order Details
+                        </button>
+                      )}
 
+                      {/* REVIEW BUTTON FOR DELIVERED ORDERS */}
                       {order.status === "delivered" &&
                         order.status !== "archived" && (
-                          <button
-                            className="btn"
-                            onClick={() =>
-                              handleArchiveOrder(order.order_number)
-                            }
-                          >
-                            Archive
-                          </button>
+                          <>
+                            <button
+                              className="btn btn-primary"
+                              onClick={() => handleReviewClick(order)}
+                              disabled={
+                                order.has_reviewed ||
+                                reviewedOrders.includes(order.order_number)
+                              }
+                            >
+                              {order.has_reviewed ||
+                              reviewedOrders.includes(order.order_number)
+                                ? "Reviewed ✓"
+                                : "Write Review"}
+                            </button>
+
+                            <button
+                              className="btn"
+                              onClick={() =>
+                                handleArchiveOrder(order.order_number)
+                              }
+                            >
+                              Archive
+                            </button>
+                          </>
                         )}
                     </div>
                   </div>
@@ -461,6 +589,24 @@ const OrdersPage = () => {
           </div>
         )}
       </div>
+
+      {reviewingOrder && (
+        <ReviewModal
+          order={reviewingOrder}
+          isOpen={!!reviewingOrder}
+          onClose={() => setReviewingOrder(null)}
+          onReviewSubmitted={handleReviewSubmitted}
+        />
+      )}
+
+      {/* Product Details Modal */}
+      {viewingProduct && (
+        <ProductDetailsModal
+          product={viewingProduct}
+          isOpen={!!viewingProduct}
+          onClose={() => setViewingProduct(null)}
+        />
+      )}
     </div>
   );
 };

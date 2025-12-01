@@ -395,6 +395,72 @@ def get_products():
         conn.close()
 
 
+@app.route("/api/products/<int:product_id>", methods=["GET"])
+def get_product_by_id(product_id):
+    """Get a single product by ID with all details except stock"""
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        
+        # Get product basic info - EXCLUDING stock_quantity for regular users
+        # Check if user is admin (you can add your admin check logic here)
+        # For now, let's exclude stock_quantity for all users
+        cursor.execute("""
+            SELECT p.id, p.name, p.description, p.price, p.discount, 
+                   p.image_url, p.category_id, p.brand, c.name AS category_name
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.id
+            WHERE p.id = %s
+        """, (product_id,))
+        
+        product = cursor.fetchone()
+        
+        if not product:
+            return jsonify({"error": "Product not found"}), 404
+
+        # Fetch colors
+        cursor.execute("""
+            SELECT cl.color_id, cl.name 
+            FROM product_colors pc
+            JOIN colors cl ON pc.color_id = cl.color_id
+            WHERE pc.product_id = %s
+        """, (product_id,))
+        product["colors"] = cursor.fetchall()
+
+        # Fetch sizes
+        cursor.execute("""
+            SELECT s.size_id, s.size_name 
+            FROM product_sizes ps
+            JOIN sizes s ON ps.size_id = s.size_id
+            WHERE ps.product_id = %s
+        """, (product_id,))
+        product["sizes"] = cursor.fetchall()
+
+        # Fetch images
+        cursor.execute("""
+            SELECT image_filename 
+            FROM product_images 
+            WHERE product_id = %s
+        """, (product_id,))
+        product["images"] = [row["image_filename"] for row in cursor.fetchall()]
+        
+        # If you want to include stock for admins only, you can add this:
+        # For now, we're excluding it completely as requested
+        
+        return jsonify(product), 200
+
+    except Exception as e:
+        print(f"❌ Error fetching product {product_id}:", e)
+        return jsonify({"error": "An error occurred while retrieving product"}), 500
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
 
 @app.route("/api/products", methods=["POST"])
 def add_product():
@@ -810,7 +876,7 @@ def add_address():
             "success": False,
             "error": str(e)
         }), 500
-        
+
 @app.route("/api/addresses/<int:user_id>", methods=["GET"])
 def get_addresses(user_id):
     """Get all addresses for a user"""
@@ -1139,6 +1205,118 @@ def get_reviews_by_product(product_id):
     except Exception as e:
         print(f"❌ Error fetching reviews: {e}")
         return jsonify({"error": "Server error"}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+@app.route("/api/reviews", methods=["POST"])
+def submit_review():
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "No data provided"}), 422
+
+    # Validate required fields
+    required_fields = ["user_id", "product_id", "order_number", "rating"]
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"Missing required field: {field}"}), 400
+
+    # Validate and convert data
+    try:
+        user_id = int(data["user_id"])
+        product_id = int(data["product_id"])
+        rating = int(data["rating"])
+        order_number = str(data["order_number"])  # this is now the FK
+    except (ValueError, TypeError):
+        return jsonify({"error": "Invalid data types provided"}), 422
+
+    # Validate rating
+    if rating < 1 or rating > 5:
+        return jsonify({"error": "Rating must be between 1 and 5"}), 422
+
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+
+        # Check if review already exists
+        cursor.execute("""
+            SELECT id FROM reviews 
+            WHERE user_id = %s AND product_id = %s AND order_number = %s
+        """, (user_id, product_id, order_number))
+        
+        existing_review = cursor.fetchone()
+
+        if existing_review:
+            return jsonify({"error": "You have already reviewed this product from this order"}), 409
+
+        # Insert review
+        cursor.execute("""
+            INSERT INTO reviews (user_id, product_id, order_number, rating, comment)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (
+            user_id,
+            product_id,
+            order_number,
+            rating,
+            data.get("comment")
+        ))
+
+        conn.commit()
+        return jsonify({"message": "Review submitted successfully"}), 201
+
+    except Exception as e:
+        print(f"❌ Error submitting review: {e}")
+        conn.rollback()
+        return jsonify({"error": "Server error"}), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+@app.route("/api/reviews/order/<order_number>", methods=["GET"])
+def check_order_review(order_number):
+    user_id = request.args.get("user_id")
+
+    if not user_id:
+        return jsonify({"error": "Missing user_id parameter"}), 400
+
+    try:
+        user_id = int(user_id)
+    except (ValueError, TypeError):
+        return jsonify({"error": "Invalid user_id"}), 422
+
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("""
+            SELECT COUNT(*) AS review_count 
+            FROM reviews 
+            WHERE user_id = %s AND order_number = %s
+        """, (user_id, order_number))
+
+        result = cursor.fetchone()
+
+        return jsonify({
+            "has_reviewed": result["review_count"] > 0 if result else False
+        }), 200
+
+    except Exception as e:
+        print(f"❌ Error checking review: {e}")
+        return jsonify({"error": "Server error"}), 500
+
     finally:
         if cursor:
             cursor.close()
@@ -1493,6 +1671,9 @@ def get_all_customers():
         cursor.close()
         conn.close()
 
+
+
+    
 if __name__ == "__main__":
     app.run(debug=True)
 
