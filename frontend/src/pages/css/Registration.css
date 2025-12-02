@@ -1,307 +1,468 @@
 /* Registration Page Styles with Theme Colors */
 .registration-page {
-    background: #f8f9fa;
-    min-height: 100vh;
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f8f9fa;
+  min-height: 100vh;
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .registration-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 30px 20px;
-    background: white;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 30px 20px;
+  background: white;
 }
 
 .registration-header {
-    text-align: center;
-    margin-bottom: 30px;
+  text-align: center;
+  margin-bottom: 30px;
 }
 
 .registration-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #2c3e50;
-    margin-bottom: 10px;
-    border-bottom: 3px solid #007bff;
-    padding-bottom: 12px;
-    display: inline-block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 10px;
+  border-bottom: 3px solid #007bff;
+  padding-bottom: 12px;
+  display: inline-block;
 }
 
 .registration-subtitle {
-    color: #666;
-    font-size: 1rem;
-    font-weight: 500;
+  color: #666;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 /* Registration Form */
 .registration-form {
-    background: white;
-    padding: 30px;
-    border-radius: 14px;
-    box-shadow: 0 4px 16px rgba(0, 123, 255, 0.08);
-    border: 2px solid #f0f8ff;
-    position: relative;
+  background: white;
+  padding: 30px;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0, 123, 255, 0.08);
+  border: 2px solid #f0f8ff;
+  position: relative;
 }
 
 .registration-form::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #007bff, #ffd700);
-    border-radius: 14px 14px 0 0;
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #007bff, #ffd700);
+  border-radius: 14px 14px 0 0;
 }
 
 .form-group {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
 .form-group label {
-    display: block;
-    font-weight: 600;
-    color: #2c3e50;
-    margin-bottom: 8px;
-    font-size: 0.95rem;
+  display: block;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
 }
 
 .form-group input,
 .form-group select {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid #e1f0ff;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    background: #f8fbff;
-    color: #2c3e50;
-    box-sizing: border-box;
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e1f0ff;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #f8fbff;
+  color: #2c3e50;
+  box-sizing: border-box;
 }
 
 .form-group input:focus,
 .form-group select:focus {
-    outline: none;
-    border-color: #007bff;
-    background: white;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-    transform: translateY(-1px);
+  outline: none;
+  border-color: #007bff;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  transform: translateY(-1px);
 }
 
 .form-group input::placeholder {
-    color: #a0a0a0;
+  color: #a0a0a0;
 }
 
 /* Checkbox Group */
 .checkbox-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 25px 0;
-    padding: 15px;
-    background: #f8fbff;
-    border-radius: 8px;
-    border: 2px solid #e1f0ff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 25px 0;
+  padding: 15px;
+  background: #f8fbff;
+  border-radius: 8px;
+  border: 2px solid #e1f0ff;
 }
 
 .checkbox-group input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    accent-color: #007bff;
-    cursor: pointer;
-    flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  accent-color: #007bff;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .checkbox-group label {
-    font-weight: 600;
-    color: #2c3e50;
-    cursor: pointer;
-    margin: 0;
-    font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  cursor: pointer;
+  margin: 0;
+  font-size: 1rem;
 }
 
 .checkbox-group a {
-    color: #007bff;
-    text-decoration: none;
-    font-weight: 700;
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 700;
 }
 
 .checkbox-group a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 /* Save Button */
 .save-btn {
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    color: white;
-    border: none;
-    padding: 14px 35px;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    width: 100%;
-    margin-top: 20px;
-    position: relative;
-    overflow: hidden;
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  border: none;
+  padding: 14px 35px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin-top: 20px;
+  position: relative;
+  overflow: hidden;
 }
 
 .save-btn::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg,
-            transparent,
-            rgba(255, 255, 255, 0.2),
-            transparent);
-    transition: left 0.5s;
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
 }
 
 .save-btn:hover::before {
-    left: 100%;
+  left: 100%;
 }
 
 .save-btn:hover {
-    background: linear-gradient(135deg, #0056b3, #004085);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3);
+  background: linear-gradient(135deg, #0056b3, #004085);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3);
 }
 
 .save-btn:active {
-    transform: translateY(0);
+  transform: translateY(0);
 }
 
 .save-btn:disabled {
-    background: #6c757d;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
+  background: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .save-btn:disabled:hover::before {
-    left: -100%;
+  left: -100%;
 }
 
 /* Registration Footer */
 .registration-footer {
-    text-align: center;
-    margin-top: 25px;
-    padding-top: 20px;
-    border-top: 2px solid #e1f0ff;
-    color: #666;
-    font-size: 0.95rem;
+  text-align: center;
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 2px solid #e1f0ff;
+  color: #666;
+  font-size: 0.95rem;
 }
 
 .registration-footer a {
-    color: #007bff;
-    text-decoration: none;
-    font-weight: 600;
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 600;
 }
 
 .registration-footer a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 /* Form Validation */
 .form-group.error input,
 .form-group.error select {
-    border-color: #dc3545;
-    background: #fff5f5;
+  border-color: #dc3545;
+  background: #fff5f5;
 }
 
 .error-message {
-    color: #dc3545;
-    font-size: 0.85rem;
-    margin-top: 5px;
-    font-weight: 600;
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 5px;
+  font-weight: 600;
 }
 
 .form-group.success input,
 .form-group.success select {
-    border-color: #28a745;
-    background: #f8fff8;
+  border-color: #28a745;
+  background: #f8fff8;
 }
 
 /* Loading State */
 .loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #007bff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 20px auto;
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
 }
 
 @keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
+  0% {
+    transform: rotate(0deg);
+  }
 
-    100% {
-        transform: rotate(360deg);
-    }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Success Message */
 .success-message {
-    background: linear-gradient(135deg, #28a745, #20c997);
-    color: white;
-    padding: 20px;
-    border-radius: 12px;
-    text-align: center;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
 }
 
 .success-message h3 {
-    margin: 0 0 10px 0;
-    font-size: 1.3rem;
+  margin: 0 0 10px 0;
+  font-size: 1.3rem;
 }
 
 .success-message p {
-    margin: 0;
-    opacity: 0.9;
+  margin: 0;
+  opacity: 0.9;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .registration-container {
-        padding: 20px 15px;
-    }
+  .registration-container {
+    padding: 20px 15px;
+  }
 
-    .registration-form {
-        padding: 20px;
-    }
+  .registration-form {
+    padding: 20px;
+  }
 
-    .registration-title {
-        font-size: 1.6rem;
-    }
+  .registration-title {
+    font-size: 1.6rem;
+  }
 }
 
 @media (max-width: 480px) {
-    .registration-container {
-        padding: 15px 10px;
-    }
+  .registration-container {
+    padding: 15px 10px;
+  }
 
-    .registration-form {
-        padding: 15px;
-    }
+  .registration-form {
+    padding: 15px;
+  }
 
-    .registration-title {
-        font-size: 1.4rem;
-    }
+  .registration-title {
+    font-size: 1.4rem;
+  }
 
-    .checkbox-group {
-        padding: 12px;
-    }
+  .checkbox-group {
+    padding: 12px;
+  }
 
-    .checkbox-group label {
-        font-size: 0.9rem;
-    }
+  .checkbox-group label {
+    font-size: 0.9rem;
+  }
+}
+
+/* Modal Styles for Terms and Privacy */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #1a365d;
+  font-size: 1.8rem;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #718096;
+  padding: 0.5rem;
+  border-radius: 4px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-button:hover {
+  background: #f7fafc;
+  color: #4a5568;
+}
+
+.modal-body {
+  padding: 30px;
+}
+
+.terms-content,
+.privacy-content {
+  color: #2d3748;
+  line-height: 1.6;
+}
+
+.terms-section,
+.privacy-section {
+  margin-bottom: 25px;
+}
+
+.terms-section h3,
+.privacy-section h3 {
+  color: #1a365d;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+}
+
+.terms-section p,
+.privacy-section p {
+  margin: 0;
+  color: #4a5568;
+  font-size: 0.95rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 20px 30px;
+  border-top: 1px solid #e2e8f0;
+  background: #fafafa;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.btn-primary {
+  background: #0066ff;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+}
+
+.btn-primary:hover {
+  background: #0052d9;
+}
+
+/* Terms link button style */
+.terms-link {
+  background: none;
+  border: none;
+  color: #007bff;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0;
+  font-size: inherit;
+}
+
+.terms-link:hover {
+  color: #0056b3;
+}
+
+/* Responsive modal */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    max-height: 85vh;
+  }
+
+  .modal-header {
+    padding: 15px 20px;
+  }
+
+  .modal-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .modal-body {
+    padding: 20px;
+  }
+
+  .terms-section,
+  .privacy-section {
+    margin-bottom: 20px;
+  }
 }

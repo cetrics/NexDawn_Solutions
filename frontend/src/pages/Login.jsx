@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import "./css/Login.css";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -20,52 +21,63 @@ const Login = () => {
 
   // Check if user is already logged in
   useEffect(() => {
-    if (localStorage.getItem("token")) {
+    const token = localStorage.getItem("token");
+    if (token && token !== "undefined" && token !== "") {
       navigate("/layout", { replace: true });
     }
-  }, [navigate]);
+  }, []);
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError("");
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
-  try {
-    const response = await axios.post("/api/login", {
-      email,
-      password,
-    });
+    try {
+      const response = await axios.post(
+        "/api/login",
+        { email, password },
+        { validateStatus: () => true } // ⭐ Important
+      );
 
-    if (response.data.success) {
-      const user = response.data.user;
+      if (response.data.success) {
+        const user = response.data.user;
 
-      // Save token and user
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("user", JSON.stringify(user));
+        // Save token and user
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", JSON.stringify(user));
 
-      // Redirect based on user type
-      if (user.user_type === "admin") {
-        navigate("/layout", { replace: true });
+        // Redirect based on user type
+        if (user.user_type === "admin") {
+          navigate("/layout", { replace: true });
+        } else {
+          navigate("/", { replace: true });
+        }
       } else {
-        navigate("/", { replace: true });
+        toast.error(response.data.message || "Login failed");
       }
-
-    } else {
-      setError(response.data.message || "Login failed");
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message || "An error occurred during login"
+      );
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    setError(err.response?.data?.message || "An error occurred during login");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   return (
     <div className="login-container">
       <div className="login-box">
         <div className="login-header">
-          <div className="brand-logo">N</div>
+          <div className="brand-logo">
+            <Link to="/">
+              <img
+                src="../static/img/nexdawn_logo.png"
+                alt="NexDawn Solutions Logo"
+                className="login-logo"
+              />
+            </Link>
+          </div>
+
           <h1>Welcome Back</h1>
           <p className="login-subtitle">Sign in to your NexDawn account</p>
         </div>

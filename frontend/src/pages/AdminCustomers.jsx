@@ -2,13 +2,24 @@ import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "./css/AdminCustomers.css";
+import { useNavigate } from "react-router-dom";
 
 const AdminCustomers = () => {
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!token || !user || user.user_type !== "admin") {
+      navigate("/login", { replace: true });
+    }
+  }, []);
 
   useEffect(() => {
     fetchAllCustomers();
@@ -19,7 +30,7 @@ const AdminCustomers = () => {
       setLoading(true);
       const token = localStorage.getItem("token");
       const response = await axios.get("/api/admin/customers", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setCustomers(response.data);
     } catch (error) {
@@ -34,12 +45,13 @@ const AdminCustomers = () => {
     if (!searchQuery) return customers;
 
     const query = searchQuery.toLowerCase();
-    return customers.filter(customer =>
-      customer.email?.toLowerCase().includes(query) ||
-      customer.username?.toLowerCase().includes(query) ||
-      customer.first_name?.toLowerCase().includes(query) ||
-      customer.last_name?.toLowerCase().includes(query) ||
-      customer.phone?.includes(query)
+    return customers.filter(
+      (customer) =>
+        customer.email?.toLowerCase().includes(query) ||
+        customer.username?.toLowerCase().includes(query) ||
+        customer.first_name?.toLowerCase().includes(query) ||
+        customer.last_name?.toLowerCase().includes(query) ||
+        customer.phone?.includes(query)
     );
   }, [customers, searchQuery]);
 
@@ -65,8 +77,8 @@ const AdminCustomers = () => {
   const getCustomerStats = () => {
     return {
       total: customers.length,
-      withOrders: customers.filter(c => c.order_count > 0).length,
-      active: customers.filter(c => c.last_login).length,
+      withOrders: customers.filter((c) => c.order_count > 0).length,
+      active: customers.filter((c) => c.last_login).length,
     };
   };
 
@@ -133,22 +145,31 @@ const AdminCustomers = () => {
                 <tr key={customer.id}>
                   <td className="customer-info">
                     <div className="customer-name">
-                      {customer.first_name || customer.last_name 
-                        ? `${customer.first_name || ''} ${customer.last_name || ''}`.trim()
-                        : customer.username
-                      }
+                      {customer.first_name || customer.last_name
+                        ? `${customer.first_name || ""} ${
+                            customer.last_name || ""
+                          }`.trim()
+                        : customer.username}
                     </div>
-                    <div className="customer-username">@{customer.username}</div>
+                    <div className="customer-username">
+                      @{customer.username}
+                    </div>
                   </td>
                   <td className="customer-contact">
                     <div className="customer-email">{customer.email}</div>
-                    <div className="customer-phone">{customer.phone || "No phone"}</div>
+                    <div className="customer-phone">
+                      {customer.phone || "No phone"}
+                    </div>
                   </td>
                   <td className="customer-orders">
-                    <span className="order-count">{customer.order_count || 0}</span>
+                    <span className="order-count">
+                      {customer.order_count || 0}
+                    </span>
                   </td>
                   <td className="customer-last-login">
-                    {customer.last_login ? formatDate(customer.last_login) : "Never"}
+                    {customer.last_login
+                      ? formatDate(customer.last_login)
+                      : "Never"}
                   </td>
                   <td className="customer-registered">
                     {formatDate(customer.created_at)}
@@ -185,10 +206,11 @@ const AdminCustomers = () => {
                   <div className="detail-row">
                     <label>Name:</label>
                     <span>
-                      {selectedCustomer.first_name || selectedCustomer.last_name 
-                        ? `${selectedCustomer.first_name || ''} ${selectedCustomer.last_name || ''}`.trim()
-                        : "Not provided"
-                      }
+                      {selectedCustomer.first_name || selectedCustomer.last_name
+                        ? `${selectedCustomer.first_name || ""} ${
+                            selectedCustomer.last_name || ""
+                          }`.trim()
+                        : "Not provided"}
                     </span>
                   </div>
                   <div className="detail-row">
@@ -213,7 +235,11 @@ const AdminCustomers = () => {
                   </div>
                   <div className="detail-row">
                     <label>Date of Birth:</label>
-                    <span>{selectedCustomer.date_of_birth ? formatDate(selectedCustomer.date_of_birth) : "Not provided"}</span>
+                    <span>
+                      {selectedCustomer.date_of_birth
+                        ? formatDate(selectedCustomer.date_of_birth)
+                        : "Not provided"}
+                    </span>
                   </div>
                 </div>
 
@@ -221,11 +247,17 @@ const AdminCustomers = () => {
                   <h3>Account Information</h3>
                   <div className="detail-row">
                     <label>Total Orders:</label>
-                    <span className="order-count-badge">{selectedCustomer.order_count || 0}</span>
+                    <span className="order-count-badge">
+                      {selectedCustomer.order_count || 0}
+                    </span>
                   </div>
                   <div className="detail-row">
                     <label>Last Login:</label>
-                    <span>{selectedCustomer.last_login ? formatDate(selectedCustomer.last_login) : "Never"}</span>
+                    <span>
+                      {selectedCustomer.last_login
+                        ? formatDate(selectedCustomer.last_login)
+                        : "Never"}
+                    </span>
                   </div>
                   <div className="detail-row">
                     <label>Registered:</label>
@@ -233,7 +265,11 @@ const AdminCustomers = () => {
                   </div>
                   <div className="detail-row">
                     <label>Account Updated:</label>
-                    <span>{selectedCustomer.updated_at ? formatDate(selectedCustomer.updated_at) : "Never"}</span>
+                    <span>
+                      {selectedCustomer.updated_at
+                        ? formatDate(selectedCustomer.updated_at)
+                        : "Never"}
+                    </span>
                   </div>
                 </div>
               </div>

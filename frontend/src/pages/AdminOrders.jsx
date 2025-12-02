@@ -2,24 +2,49 @@ import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "./css/AdminOrders.css";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const AdminOrders = () => {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-
+  const location = useLocation();
 
   useEffect(() => {
-  const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user"));
+    const params = new URLSearchParams(location.search);
+    const highlightOrder = params.get("highlight");
 
-  if (!token || !user || user.user_type !== "admin") {
-    navigate("/login", { replace: true });
-  }
-}, []);
+    if (highlightOrder) {
+      // Scroll to the order after a short delay
+      setTimeout(() => {
+        const element = document.querySelector(
+          `[data-order="${highlightOrder}"]`
+        );
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+          element.classList.add("highlight-order");
+
+          // Remove highlight after 3 seconds
+          setTimeout(() => {
+            element.classList.remove("highlight-order");
+          }, 3000);
+        }
+      }, 500);
+    }
+  }, [location.search]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!token || !user || user.user_type !== "admin") {
+      navigate("/login", { replace: true });
+    }
+  }, []);
 
   useEffect(() => {
     fetchAllOrders();
@@ -82,7 +107,8 @@ const AdminOrders = () => {
           order.order_number?.toLowerCase().includes(query) ||
           order.user_email?.toLowerCase().includes(query) ||
           order.items_summary?.toLowerCase().includes(query) ||
-          (order.first_name && order.first_name.toLowerCase().includes(query)) ||
+          (order.first_name &&
+            order.first_name.toLowerCase().includes(query)) ||
           (order.last_name && order.last_name.toLowerCase().includes(query))
       );
     }
@@ -130,7 +156,7 @@ const AdminOrders = () => {
   // Get full customer name
   const getCustomerName = (order) => {
     if (order.first_name || order.last_name) {
-      return `${order.first_name || ''} ${order.last_name || ''}`.trim();
+      return `${order.first_name || ""} ${order.last_name || ""}`.trim();
     }
     return "N/A";
   };
@@ -234,11 +260,15 @@ const AdminOrders = () => {
             </thead>
             <tbody>
               {filteredOrders.map((order) => (
-                <tr key={order.order_number}>
+                <tr key={order.order_number} data-order={order.order_number}>
                   <td className="order-number">{order.order_number}</td>
                   <td className="customer-info">
-                    <div className="customer-name">{getCustomerName(order)}</div>
-                    <div className="customer-email">{order.user_email || "N/A"}</div>
+                    <div className="customer-name">
+                      {getCustomerName(order)}
+                    </div>
+                    <div className="customer-email">
+                      {order.user_email || "N/A"}
+                    </div>
                   </td>
                   <td className="order-amount">
                     {formatCurrency(order.total_amount)}
@@ -354,42 +384,43 @@ const AdminOrders = () => {
                   )}
                 </div>
                 {/* ADD THE DELIVERY DETAILS SECTION HERE */}
-{selectedOrder.address_line1 && (
-  <div className="detail-section">
-    <h3>Delivery Details</h3>
-    <div className="detail-row">
-      <label>Contact Name:</label>
-      <span>{selectedOrder.contact_name || "N/A"}</span>
-    </div>
-    <div className="detail-row">
-      <label>Contact Phone:</label>
-      <span>{selectedOrder.contact_phone || "N/A"}</span>
-    </div>
-    <div className="detail-row">
-      <label>Address:</label>
-      <span className="address-full">
-        {selectedOrder.address_line1}
-        {selectedOrder.address_line2 && `, ${selectedOrder.address_line2}`}
-      </span>
-    </div>
-    <div className="detail-row">
-      <label>Town/City:</label>
-      <span>{selectedOrder.town || "N/A"}</span>
-    </div>
-    <div className="detail-row">
-      <label>County:</label>
-      <span>{selectedOrder.county || "N/A"}</span>
-    </div>
-    <div className="detail-row">
-      <label>Postal Code:</label>
-      <span>{selectedOrder.postal_code || "N/A"}</span>
-    </div>
-    <div className="detail-row">
-      <label>Country:</label>
-      <span>{selectedOrder.country || "N/A"}</span>
-    </div>
-  </div>
-)}
+                {selectedOrder.address_line1 && (
+                  <div className="detail-section">
+                    <h3>Delivery Details</h3>
+                    <div className="detail-row">
+                      <label>Contact Name:</label>
+                      <span>{selectedOrder.contact_name || "N/A"}</span>
+                    </div>
+                    <div className="detail-row">
+                      <label>Contact Phone:</label>
+                      <span>{selectedOrder.contact_phone || "N/A"}</span>
+                    </div>
+                    <div className="detail-row">
+                      <label>Address:</label>
+                      <span className="address-full">
+                        {selectedOrder.address_line1}
+                        {selectedOrder.address_line2 &&
+                          `, ${selectedOrder.address_line2}`}
+                      </span>
+                    </div>
+                    <div className="detail-row">
+                      <label>Town/City:</label>
+                      <span>{selectedOrder.town || "N/A"}</span>
+                    </div>
+                    <div className="detail-row">
+                      <label>County:</label>
+                      <span>{selectedOrder.county || "N/A"}</span>
+                    </div>
+                    <div className="detail-row">
+                      <label>Postal Code:</label>
+                      <span>{selectedOrder.postal_code || "N/A"}</span>
+                    </div>
+                    <div className="detail-row">
+                      <label>Country:</label>
+                      <span>{selectedOrder.country || "N/A"}</span>
+                    </div>
+                  </div>
+                )}
 
                 {selectedOrder.items && selectedOrder.items.length > 0 && (
                   <div className="detail-section">
@@ -413,7 +444,8 @@ const AdminOrders = () => {
                               Quantity: {item.quantity}
                             </div>
                             <div className="item-total">
-                              Total: {formatCurrency(item.price * item.quantity)}
+                              Total:{" "}
+                              {formatCurrency(item.price * item.quantity)}
                             </div>
                           </div>
                         </div>
@@ -422,11 +454,15 @@ const AdminOrders = () => {
                     <div className="order-summary">
                       <div className="summary-row">
                         <label>Subtotal:</label>
-                        <span>{formatCurrency(selectedOrder.total_amount)}</span>
+                        <span>
+                          {formatCurrency(selectedOrder.total_amount)}
+                        </span>
                       </div>
                       <div className="summary-row total">
                         <label>Total Amount:</label>
-                        <span>{formatCurrency(selectedOrder.total_amount)}</span>
+                        <span>
+                          {formatCurrency(selectedOrder.total_amount)}
+                        </span>
                       </div>
                     </div>
                   </div>

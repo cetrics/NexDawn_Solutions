@@ -5,8 +5,10 @@ import "./css/Products.css";
 import AddProductModal from "./AddProductModal";
 import AddCategoryModal from "./AddCategoryModal";
 import AddColorModal from "./AddColorModal";
+import { useNavigate } from "react-router-dom";
 
 const Products = () => {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -15,6 +17,8 @@ const Products = () => {
   const [showAddColorModal, setShowAddColorModal] = useState(false);
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [filteredProducts, setFilteredProducts] = useState([]); // ADD THIS
+  const [searchTerm, setSearchTerm] = useState(""); // ADD THIS
 
   const handleEditProduct = (product) => {
     setSelectedProduct(product);
@@ -24,13 +28,45 @@ const Products = () => {
   };
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!token || !user || user.user_type !== "admin") {
+      navigate("/login", { replace: true });
+    }
+  }, []);
+
+  useEffect(() => {
     fetchProducts();
   }, []);
+
+  // ADD THIS SEARCH EFFECT:
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredProducts(products);
+      return;
+    }
+
+    const filtered = products.filter((product) => {
+      const term = searchTerm.toLowerCase();
+      return (
+        (product.name && product.name.toLowerCase().includes(term)) ||
+        (product.category_name &&
+          product.category_name.toLowerCase().includes(term)) ||
+        (product.description &&
+          product.description.toLowerCase().includes(term)) ||
+        (product.brand && product.brand.toLowerCase().includes(term))
+      );
+    });
+
+    setFilteredProducts(filtered);
+  }, [searchTerm, products]);
 
   const fetchProducts = async () => {
     try {
       const response = await axios.get("/api/products");
       setProducts(response.data);
+      setFilteredProducts(response.data);
     } catch (error) {
       console.error("Error fetching products:", error);
       toast.error("Failed to load products");
@@ -105,6 +141,15 @@ const Products = () => {
           </div>
         </div>
       </div>
+      {/* ADD THIS SEARCH BAR: */}
+      <div className="products-search">
+        <input
+          type="text"
+          placeholder="Search products by name, category, or description..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
       <div className="products-table-container">
         <table className="products-table">
           <thead>
@@ -117,7 +162,8 @@ const Products = () => {
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => {
+            {filteredProducts.map((product) => {
+              // CHANGE products TO filteredProducts
               const stockStatus = getStockStatus(product.stock_quantity);
               return (
                 <tr key={product.id} className="product-row">
@@ -356,6 +402,32 @@ const Products = () => {
           toast.info("Category added successfully!");
         }}
       />
+
+      {filteredProducts.length === 0 && (
+        <div className="empty-state">
+          <p>
+            {searchTerm
+              ? `No products found for "${searchTerm}"`
+              : "No products found"}
+          </p>
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm("")}
+              style={{
+                marginTop: "1rem",
+                padding: "0.5rem 1rem",
+                background: "#007bff",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
+              Clear Search
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

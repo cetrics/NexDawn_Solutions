@@ -7,6 +7,7 @@ from flask import jsonify, request
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import uuid
+import time
 from datetime import datetime, timedelta
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
@@ -1000,24 +1001,24 @@ def create_order():
 
         print(f"✅ Using order_number: {order_number}")
 
-        # Insert into orders table - FIXED: use datetime.now() instead of datetime.datetime.now()
+        # Insert into orders table - ADD 'new' for notification column
         cursor.execute(
             """
-            INSERT INTO orders (user_id, address_id, payment_method, total_amount, status, created_at, order_number)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO orders (user_id, address_id, payment_method, total_amount, status, created_at, order_number, notification)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """,
-            (user_id, address_id, payment_method, total_amount, "Pending", datetime.now(), order_number)  # FIXED HERE
+            (user_id, address_id, payment_method, total_amount, "Pending", datetime.now(), order_number, "new")  # ADDED 'new' HERE
         )
         order_id = cursor.lastrowid
         print(f"✅ Order created with ID: {order_id}")
 
-        # ✅ Insert default tracking step (Ordered) - FIXED: use datetime.now()
+        # ✅ Insert default tracking step (Ordered)
         cursor.execute(
             """
             INSERT INTO order_tracking (order_id, status, update_time, description)
             VALUES (%s, %s, %s, %s)
             """,
-            (order_id, "Ordered", datetime.now(), "Order placed successfully")  # FIXED HERE
+            (order_id, "Ordered", datetime.now(), "Order placed successfully")
         )
 
         # Insert each cart item into order_items and update stock
@@ -1671,6 +1672,65 @@ def get_all_customers():
         cursor.close()
         conn.close()
 
+
+@app.route("/api/admin/orders/<order_number>/clear-notification", methods=["POST"])
+def clear_notification(order_number):
+    """Clear notification for an order"""
+    try:
+        conn = get_db_connection()
+        if conn is None:
+            return jsonify({"error": "Database connection failed"}), 500
+        
+        cursor = conn.cursor()
+        
+        # Update notification to NULL
+        cursor.execute(
+            "UPDATE orders SET notification = NULL WHERE order_number = %s",
+            (order_number,)
+        )
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return jsonify({"success": True, "message": "Notification cleared"}), 200
+        
+    except Exception as e:
+        print(f"Error clearing notification: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/admin/orders/new", methods=["GET"])
+def get_new_orders():
+    """Get orders that have notification = 'new'"""
+    try:
+        conn = get_db_connection()
+        if conn is None:
+            return jsonify({"error": "Database connection failed"}), 500
+
+        cursor = conn.cursor(dictionary=True)
+
+        # Fetch all orders with notification = 'new'
+        cursor.execute("""
+            SELECT id, order_number, user_id, address_id, payment_method,
+                   total_amount, status, created_at, updated_at, notification
+            FROM orders
+            WHERE LOWER(notification) = 'new'
+            ORDER BY created_at DESC
+        """)
+
+        orders = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            "orders": orders,
+            "count": len(orders)
+        }), 200
+
+    except Exception as e:
+        print(f"Error fetching new orders: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 
     

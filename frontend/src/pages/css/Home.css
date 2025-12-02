@@ -642,9 +642,11 @@
   left: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
-  background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(255, 215, 0, 0.3) 100%) !important;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 215, 0, 0.3) 100%
+  ) !important;
   border-radius: 8px !important;
 }
 
@@ -689,10 +691,12 @@
   left: -100% !important;
   width: 100% !important;
   height: 100% !important;
-  background: linear-gradient(90deg,
-      transparent,
-      rgba(255, 255, 255, 0.2),
-      transparent) !important;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  ) !important;
   transition: left 0.5s !important;
 }
 
@@ -803,7 +807,6 @@
 }
 
 @keyframes homeHighlightPulse {
-
   0%,
   100% {
     box-shadow: 0 6px 20px rgba(0, 123, 255, 0.1) !important;

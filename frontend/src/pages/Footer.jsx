@@ -67,30 +67,6 @@ const Footer = () => {
             </ul>
           </div>
 
-         {/* Categories */}
-<div className="footer-section">
-  <h4>Categories</h4>
-  {loading ? (
-    <div className="categories-loading">
-      <p>Loading categories...</p>
-    </div>
-  ) : categories.length > 0 ? (
-    <ul className="footer-links">
-      {categories.map((category) => (
-        <li key={category.id}>
-          <Link to={`/?scrollTo=${encodeURIComponent(category.name)}`}>
-            {category.name}
-          </Link>
-        </li>
-      ))}
-    </ul>
-  ) : (
-    <div className="no-categories">
-      <p>No categories available</p>
-    </div>
-  )}
-</div>
-
           {/* Contact Info */}
           <div className="footer-section">
             <h4>Contact Us</h4>

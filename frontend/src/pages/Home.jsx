@@ -23,7 +23,6 @@ const CategorySection = ({
 }) => {
   const [showAll, setShowAll] = useState(forceExpand);
   const navigate = useNavigate();
-  
 
   useEffect(() => {
     if (forceExpand) setShowAll(true);
@@ -100,16 +99,16 @@ const Home = () => {
   }, [wishlist]);
 
   // Add this useEffect after your existing useEffects
-useEffect(() => {
-  fetch("/api/categories/with-products")
-    .then((res) => res.json())
-    .then((data) => {
-      setCategories(data);
-    })
-    .catch((err) => {
-      console.error("Failed to fetch categories:", err);
-    });
-}, []);
+  useEffect(() => {
+    fetch("/api/categories/with-products")
+      .then((res) => res.json())
+      .then((data) => {
+        setCategories(data);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch categories:", err);
+      });
+  }, []);
 
   // Handle URL parameters for category filtering and search
   useEffect(() => {
@@ -201,10 +200,13 @@ useEffect(() => {
 
   // ADD THIS: Filter products for search
   const searchResults = searchTerm
-    ? allProducts.filter(product =>
-        product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    ? allProducts.filter(
+        (product) =>
+          product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.category_name
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          product.description?.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : [];
 
@@ -335,47 +337,56 @@ useEffect(() => {
 
         <div className="home-product-actions">
           <button
-  className={`home-add-to-cart-btn ${stock <= 0 ? 'out-of-stock' : ''}`}
-  onClick={() => {
-    if (stock <= 0) {
-      toast.error(`${product.name} is out of stock`, {
-        position: "top-right",
-        autoClose: 2000,
-      });
-      return;
-    }
+            className={`home-add-to-cart-btn ${
+              stock <= 0 ? "out-of-stock" : ""
+            }`}
+            onClick={() => {
+              if (stock <= 0) {
+                toast.error(`${product.name} is out of stock`, {
+                  position: "top-right",
+                  autoClose: 2000,
+                });
+                return;
+              }
 
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    const productToAdd = {
-      ...product,
-      quantity: 1,
-    };
+              const cart = JSON.parse(localStorage.getItem("cart")) || [];
+              const productToAdd = {
+                ...product,
+                quantity: 1,
+              };
 
-    const existing = cart.find((item) => item.id === productToAdd.id);
-    if (existing) {
-      existing.quantity += 1;
-    } else {
-      cart.push(productToAdd);
-    }
+              const existing = cart.find((item) => item.id === productToAdd.id);
+              if (existing) {
+                existing.quantity += 1;
+              } else {
+                cart.push(productToAdd);
+              }
 
-    localStorage.setItem("cart", JSON.stringify(cart));
+              localStorage.setItem("cart", JSON.stringify(cart));
 
-    // Automatically select the product when added to cart
-    const selectedItems = JSON.parse(localStorage.getItem("selectedItems")) || [];
-    if (!selectedItems.includes(productToAdd.id)) {
-      const updatedSelectedItems = [...selectedItems, productToAdd.id];
-      localStorage.setItem("selectedItems", JSON.stringify(updatedSelectedItems));
-    }
+              // Automatically select the product when added to cart
+              const selectedItems =
+                JSON.parse(localStorage.getItem("selectedItems")) || [];
+              if (!selectedItems.includes(productToAdd.id)) {
+                const updatedSelectedItems = [
+                  ...selectedItems,
+                  productToAdd.id,
+                ];
+                localStorage.setItem(
+                  "selectedItems",
+                  JSON.stringify(updatedSelectedItems)
+                );
+              }
 
-    toast.success(`${product.name} added to cart`, {
-      position: "top-right",
-      autoClose: 2000,
-    });
-  }}
-  disabled={stock <= 0}
->
-  {stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
-</button>
+              toast.success(`${product.name} added to cart`, {
+                position: "top-right",
+                autoClose: 2000,
+              });
+            }}
+            disabled={stock <= 0}
+          >
+            {stock <= 0 ? "Out of Stock" : "Add to Cart"}
+          </button>
         </div>
       </div>
     );
@@ -394,75 +405,107 @@ useEffect(() => {
       <Header />
 
       {/* Hero Section with rotating background */}
-    {/* Hero Section with rotating background and categories - HIDE WHEN SEARCHING */}
-{!searchTerm && (
-  <section className="home-hero home-hero-background">
-    <div className="home-hero-image-container">
-      <img
-        src={images[current]}
-        alt="Hero background"
-        className={`home-hero-image ${imageLoaded ? "loaded" : ""}`}
-        onLoad={() => setImageLoaded(true)}
-        onError={(e) => {
-          console.error("Failed to load hero image:", e.target.src);
-          e.target.src = "/static/images/fallback.jpg";
-        }}
-      />
-    </div>
+      {/* Hero Section with rotating background and categories - HIDE WHEN SEARCHING */}
+      {!searchTerm && (
+        <section className="home-hero home-hero-background">
+          <div className="home-hero-image-container">
+            <img
+              src={images[current]}
+              alt="Hero background"
+              className={`home-hero-image ${imageLoaded ? "loaded" : ""}`}
+              onLoad={() => setImageLoaded(true)}
+              onError={(e) => {
+                console.error("Failed to load hero image:", e.target.src);
+                e.target.src = "/static/images/fallback.jpg";
+              }}
+            />
+          </div>
 
-    <div className="home-hero-content">
-      <h2>Bringing Technology & Productivity Together</h2>
-      <p>
-        Discover computers, accessories, and stationery solutions for your
-        personal and business needs.
-      </p>
+          <div className="home-hero-content">
+            <h2>Bringing Technology & Productivity Together</h2>
+            <p>
+              Discover computers, accessories, and stationery solutions for your
+              personal and business needs.
+            </p>
 
-      <div className="home-hero-buttons">
-        <button
-          className="home-btn home-btn-primary"
-          onClick={() => navigate("/products_services")}
-        >
-          Products & Services
-        </button>
-        <button
-          className="home-btn home-btn-secondary"
-          onClick={() => navigate("/contact")}
-        >
-          Contact Us
-        </button>
-        {/* ADD THIS BROWSE CATEGORIES BUTTON */}
-        <button
-          className="home-btn home-btn-tertiary"
-          onClick={() => setShowCategories(prev => !prev)}
-        >
-          {showCategories ? "Hide Categories" : "Browse Categories"}
-        </button>
-      </div>
-
-      {/* ADD THIS CATEGORIES DROPDOWN SECTION */}
-      {showCategories && categories.length > 0 && (
-        <div className="home-hero-categories">
-          <div className="categories-grid">
-            {categories.map((category) => (
+            <div className="home-hero-buttons">
               <button
-                key={category.id}
-                className="category-chip"
+                className="home-btn home-btn-primary"
+                onClick={() => navigate("/products_services")}
+              >
+                Products & Services
+              </button>
+              <button
+                className="home-btn home-btn-secondary"
+                onClick={() => navigate("/contact")}
+              >
+                Contact Us
+              </button>
+              {/* ADD THIS BROWSE CATEGORIES BUTTON */}
+              {/* CHANGE THIS BUTTON */}
+              <button
+                className="home-btn home-btn-tertiary"
                 onClick={() => {
-                  setSelectedCategory(category.name);
-                  setShowCategories(false);
-                  navigate(`/?category=${encodeURIComponent(category.name)}`);
+                  if (showCategories) {
+                    // If categories are already showing, hide them
+                    setShowCategories(false);
+                  } else {
+                    // Show categories dropdown
+                    setShowCategories(true);
+                    // ALSO clear any category filter to show ALL products
+                    setSelectedCategory("");
+                    navigate("/"); // Navigate to home without category filter
+                  }
                 }}
               >
-                <span className="category-name">{category.name}</span>
-                <span className="product-count">({category.product_count})</span>
+                {showCategories ? "Hide Categories" : "Browse Categories"}
               </button>
-            ))}
+            </div>
+
+            {/* ADD THIS TO YOUR CATEGORIES DROPDOWN SECTION */}
+            {showCategories && categories.length > 0 && (
+              <div className="home-hero-categories">
+                <div className="categories-grid">
+                  {/* ADD THIS "ALL PRODUCTS" BUTTON FIRST */}
+                  <button
+                    className="category-chip"
+                    onClick={() => {
+                      setSelectedCategory(""); // Clear category filter
+                      setShowCategories(false);
+                      navigate("/"); // Navigate to home to show all products
+                    }}
+                  >
+                    <span className="category-name">All Products</span>
+                    <span className="product-count">
+                      ({allProducts.length})
+                    </span>
+                  </button>
+
+                  {/* KEEP EXISTING CATEGORIES */}
+                  {categories.map((category) => (
+                    <button
+                      key={category.id}
+                      className="category-chip"
+                      onClick={() => {
+                        setSelectedCategory(category.name);
+                        setShowCategories(false);
+                        navigate(
+                          `/?category=${encodeURIComponent(category.name)}`
+                        );
+                      }}
+                    >
+                      <span className="category-name">{category.name}</span>
+                      <span className="product-count">
+                        ({category.product_count})
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        </section>
       )}
-    </div>
-  </section>
-)}
 
       {/* Product Sections */}
       <div className="homepage">
@@ -480,7 +523,7 @@ useEffect(() => {
               <div className="no-products-message">
                 <h2>No products found for "{searchTerm}"</h2>
                 <p>Please try a different search term.</p>
-                <button 
+                <button
                   className="home-add-to-cart-btn"
                   onClick={() => {
                     clearSearch();
@@ -508,7 +551,7 @@ useEffect(() => {
               <div className="no-products-message">
                 <h2>No products found in {selectedCategory}</h2>
                 <p>Please try selecting a different category.</p>
-                <button 
+                <button
                   className="home-add-to-cart-btn"
                   onClick={() => {
                     setSelectedCategory("");

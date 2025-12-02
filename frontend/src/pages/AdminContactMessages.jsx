@@ -2,13 +2,24 @@ import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "./css/AdminContactMessages.css";
+import { useNavigate } from "react-router-dom";
 
 const AdminContactMessages = () => {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!token || !user || user.user_type !== "admin") {
+      navigate("/login", { replace: true });
+    }
+  }, []);
 
   useEffect(() => {
     fetchAllMessages();
@@ -19,9 +30,9 @@ const AdminContactMessages = () => {
       setLoading(true);
       const token = localStorage.getItem("token");
       const response = await axios.get("/api/contact/messages", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       if (response.data.success) {
         setMessages(response.data.messages);
       } else {
@@ -39,10 +50,11 @@ const AdminContactMessages = () => {
     if (!searchQuery) return messages;
 
     const query = searchQuery.toLowerCase();
-    return messages.filter(message =>
-      message.name?.toLowerCase().includes(query) ||
-      message.email?.toLowerCase().includes(query) ||
-      message.message?.toLowerCase().includes(query)
+    return messages.filter(
+      (message) =>
+        message.name?.toLowerCase().includes(query) ||
+        message.email?.toLowerCase().includes(query) ||
+        message.message?.toLowerCase().includes(query)
     );
   }, [messages, searchQuery]);
 
@@ -62,18 +74,21 @@ const AdminContactMessages = () => {
       month: "short",
       day: "numeric",
       hour: "2-digit",
-      minute: "2-digit"
+      minute: "2-digit",
     });
   };
 
   const getMessageStats = () => {
     const today = new Date();
     const last7Days = new Date(today.setDate(today.getDate() - 7));
-    
+
     return {
       total: messages.length,
-      today: messages.filter(m => new Date(m.created_at) > new Date().setHours(0,0,0,0)).length,
-      last7Days: messages.filter(m => new Date(m.created_at) > last7Days).length,
+      today: messages.filter(
+        (m) => new Date(m.created_at) > new Date().setHours(0, 0, 0, 0)
+      ).length,
+      last7Days: messages.filter((m) => new Date(m.created_at) > last7Days)
+        .length,
     };
   };
 
@@ -140,14 +155,11 @@ const AdminContactMessages = () => {
                   <td className="message-sender">
                     <div className="sender-name">{message.name}</div>
                   </td>
-                  <td className="message-email">
-                    {message.email}
-                  </td>
+                  <td className="message-email">{message.email}</td>
                   <td className="message-preview">
-                    {message.message.length > 100 
+                    {message.message.length > 100
                       ? `${message.message.substring(0, 100)}...`
-                      : message.message
-                    }
+                      : message.message}
                   </td>
                   <td className="message-date">
                     {formatDate(message.created_at)}
@@ -188,7 +200,10 @@ const AdminContactMessages = () => {
                   <div className="detail-row">
                     <label>Email:</label>
                     <span>
-                      <a href={`mailto:${selectedMessage.email}`} className="email-link">
+                      <a
+                        href={`mailto:${selectedMessage.email}`}
+                        className="email-link"
+                      >
                         {selectedMessage.email}
                       </a>
                     </span>
@@ -209,15 +224,7 @@ const AdminContactMessages = () => {
                 <div className="detail-section">
                   <h3>Quick Actions</h3>
                   <div className="quick-actions">
-                    <a 
-                      href={`mailto:${selectedMessage.email}?subject=Re: Your message to NexDawn Technologies&body=Dear ${selectedMessage.name},%0D%0A%0D%0AThank you for contacting us.`}
-                      className="btn-reply"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Reply via Email
-                    </a>
-                    <button 
+                    <button
                       className="btn-copy-email"
                       onClick={() => {
                         navigator.clipboard.writeText(selectedMessage.email);

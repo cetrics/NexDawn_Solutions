@@ -530,3 +530,256 @@
 .btn-text {
   font-weight: 500;
 }
+
+/* Mobile View Styles */
+@media (max-width: 768px) {
+  .products-container {
+    padding: 1rem;
+  }
+
+  .products-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .products-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .action-buttons {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .action-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .btn-text {
+    display: none; /* Hide text on mobile, keep icons */
+  }
+
+  .action-btn .btn-icon {
+    font-size: 18px;
+    margin-right: 0;
+  }
+
+  /* Table becomes card layout on mobile */
+  .products-table-container {
+    overflow-x: auto;
+  }
+
+  .products-table {
+    display: block;
+    width: 100%;
+  }
+
+  .products-table thead {
+    display: none; /* Hide table headers on mobile */
+  }
+
+  .products-table tbody {
+    display: block;
+  }
+
+  .products-table tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .products-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .products-table td:last-child {
+    border-bottom: none;
+  }
+
+  .product-name-cell {
+    min-width: auto;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .product-info {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .product-thumbnail {
+    width: 40px;
+    height: 40px;
+  }
+
+  .product-details {
+    flex: 1;
+    margin-left: 0.75rem;
+  }
+
+  .product-title {
+    font-size: 0.95rem;
+  }
+
+  .price-cell::before {
+    content: "Price: ";
+    font-weight: 600;
+    color: #4a5568;
+  }
+
+  .stock-cell::before {
+    content: "Stock: ";
+    font-weight: 600;
+    color: #4a5568;
+  }
+
+  .category-cell::before {
+    content: "Category: ";
+    font-weight: 600;
+    color: #4a5568;
+  }
+
+  .actions-cell::before {
+    content: "Actions: ";
+    font-weight: 600;
+    color: #4a5568;
+  }
+
+  .stock-status {
+    padding: 0.2rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .category-tag {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  /* Search bar styles */
+  .products-search {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .products-search input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+  }
+
+  .products-search input:focus {
+    outline: none;
+    border-color: #007bff;
+  }
+
+  /* Modal adjustments */
+  .modal-content {
+    width: 95%;
+    margin: 0.5rem;
+  }
+
+  .modal-body {
+    padding: 1.25rem;
+  }
+
+  .product-detail-section {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .detail-row {
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-start;
+  }
+
+  .detail-row label {
+    min-width: auto;
+  }
+
+  .colors-list,
+  .sizes-list {
+    justify-content: flex-start;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .products-container {
+    padding: 0.75rem;
+  }
+
+  .products-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .action-buttons {
+    gap: 6px;
+  }
+
+  .action-btn {
+    padding: 6px 10px;
+  }
+
+  .products-table td {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .product-name-cell {
+    padding: 0.75rem;
+  }
+
+  .product-thumbnail {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+/* Search bar for desktop */
+@media (min-width: 769px) {
+  .products-search {
+    margin-bottom: 1.5rem;
+    max-width: 400px;
+  }
+
+  .products-search input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+  }
+
+  .products-search input:focus {
+    outline: none;
+    border-color: #007bff;
+  }
+}
