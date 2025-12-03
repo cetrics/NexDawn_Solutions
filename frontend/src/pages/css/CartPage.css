@@ -582,10 +582,10 @@
 }
 
 .fullscreen-image {
-  max-width: 90% !important;
-  max-height: 90% !important;
-  object-fit: contain !important;
-  border-radius: 12px !important;
+  width: 50% !important; /* Takes full width */
+  height: 50% !important; /* Takes full height */
+  object-fit: contain !important; /* Keeps aspect ratio */
+  border-radius: 0 !important; /* No rounded corners for maximum space */
 }
 
 .close-btn {

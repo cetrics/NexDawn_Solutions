@@ -35,7 +35,9 @@ const ContactMessage = () => {
       const result = await response.json();
 
       if (result.success) {
-        toast.success("Message sent successfully! We will get back to you soon.");
+        toast.success(
+          "Message sent successfully! We will get back to you soon."
+        );
         setFormData({ name: "", email: "", message: "" });
       } else {
         toast.error(`Failed to send message: ${result.message}`);
@@ -50,85 +52,85 @@ const ContactMessage = () => {
 
   return (
     <div>
-    <Header />    
-    <div className="contact-container">
-      <div className="contact-header">
-        <h1>Contact Us</h1>
-        <p>Get in touch with NexDawn Technologies</p>
-      </div>
-
-      <div className="contact-content">
-        <div className="contact-form-section">
-          <form onSubmit={handleSubmit} className="contact-form">
-            <div className="form-group">
-              <label htmlFor="name">Full Name *</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                disabled={isSubmitting}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="email">Email Address *</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                disabled={isSubmitting}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="message">Your Message *</label>
-              <textarea
-                id="message"
-                name="message"
-                rows="5"
-                value={formData.message}
-                onChange={handleChange}
-                required
-                disabled={isSubmitting}
-              ></textarea>
-            </div>
-
-            <button
-              type="submit"
-              className="submit-btn"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Sending..." : "Send Message"}
-            </button>
-          </form>
+      <Header />
+      <div className="contact-container">
+        <div className="contact-header">
+          <h1>Contact Us</h1>
+          <p>Get in touch with NexDawn Technologies</p>
         </div>
 
-        <div className="contact-info-section">
-          <div className="info-card">
-            <h3>Our Information</h3>
-            <div className="info-item">
-              <strong>📍 Address</strong>
-              <p>Nairobi, Kenya</p>
-            </div>
-            <div className="info-item">
-              <strong>📞 Phone</strong>
-              <p>+254 7XX XXX XXX</p>
-            </div>
-            <div className="info-item">
-              <strong>✉️ Email</strong>
-              <p>info@nexdawn.co.ke</p>
+        <div className="contact-content">
+          <div className="contact-form-section">
+            <form onSubmit={handleSubmit} className="contact-form">
+              <div className="form-group">
+                <label htmlFor="name">Full Name *</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="email">Email Address *</label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="message">Your Message *</label>
+                <textarea
+                  id="message"
+                  name="message"
+                  rows="5"
+                  value={formData.message}
+                  onChange={handleChange}
+                  required
+                  disabled={isSubmitting}
+                ></textarea>
+              </div>
+
+              <button
+                type="submit"
+                className="submit-btn"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Sending..." : "Send Message"}
+              </button>
+            </form>
+          </div>
+
+          <div className="contact-info-section">
+            <div className="info-card">
+              <h3>Our Information</h3>
+              <div className="info-item">
+                <strong>📍 Address</strong>
+                <p>Kutus, Kirinyaga, Kenya</p>
+              </div>
+              <div className="info-item">
+                <strong>📞 Phone</strong>
+                <p>+254 731062205</p>
+              </div>
+              <div className="info-item">
+                <strong>✉️ Email</strong>
+                <p>info@nexdawn.co.ke</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    <Footer />
+      <Footer />
     </div>
   );
 };

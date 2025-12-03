@@ -6,6 +6,8 @@ import AddProductModal from "./AddProductModal";
 import AddCategoryModal from "./AddCategoryModal";
 import AddColorModal from "./AddColorModal";
 import { useNavigate } from "react-router-dom";
+import CategoryListModal from "./CategoryListModal"; // ADD THIS
+import ColorListModal from "./ColorListModal"; // ADD THIS
 
 const Products = () => {
   const navigate = useNavigate();
@@ -19,6 +21,10 @@ const Products = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState([]); // ADD THIS
   const [searchTerm, setSearchTerm] = useState(""); // ADD THIS
+  const [showCategoryListModal, setShowCategoryListModal] = useState(false); // ADD THIS
+  const [showColorListModal, setShowColorListModal] = useState(false); // ADD THIS
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [productToDelete, setProductToDelete] = useState(null);
 
   const handleEditProduct = (product) => {
     setSelectedProduct(product);
@@ -75,6 +81,21 @@ const Products = () => {
     }
   };
 
+  const handleDeleteProduct = async (productId, productName) => {
+    if (!window.confirm(`Are you sure you want to delete "${productName}"?`)) {
+      return;
+    }
+
+    try {
+      await axios.delete(`/api/products/${productId}`);
+      toast.success("Product deleted successfully!");
+      fetchProducts(); // Refresh the list
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      toast.error(error.response?.data?.error || "Failed to delete product");
+    }
+  };
+
   const handleViewDetails = (product) => {
     setSelectedProduct(product);
     setShowModal(true);
@@ -122,22 +143,46 @@ const Products = () => {
               <span className="btn-icon">📦</span>
               <span className="btn-text">Add Product</span>
             </button>
-            <button
-              className="action-btn"
-              onClick={() => setShowAddColorModal(true)}
-              title="Add Color"
-            >
-              <span className="btn-icon">🎨</span>
-              <span className="btn-text">Add Color</span>
-            </button>
-            <button
-              className="action-btn"
-              onClick={() => setShowAddCategoryModal(true)}
-              title="Add Category"
-            >
-              <span className="btn-icon">📁</span>
-              <span className="btn-text">Add Category</span>
-            </button>
+
+            {/* Color Management Buttons */}
+            <div className="action-btn-group">
+              <button
+                className="action-btn"
+                onClick={() => setShowAddColorModal(true)}
+                title="Add Color"
+              >
+                <span className="btn-icon">🎨</span>
+                <span className="btn-text">Add Color</span>
+              </button>
+              <button
+                className="action-btn"
+                onClick={() => setShowColorListModal(true)}
+                title="Manage Colors"
+              >
+                <span className="btn-icon">🎨</span>
+                <span className="btn-text">Manage Colors</span>
+              </button>
+            </div>
+
+            {/* Category Management Buttons */}
+            <div className="action-btn-group">
+              <button
+                className="action-btn"
+                onClick={() => setShowAddCategoryModal(true)}
+                title="Add Category"
+              >
+                <span className="btn-icon">📁</span>
+                <span className="btn-text">Add Category</span>
+              </button>
+              <button
+                className="action-btn"
+                onClick={() => setShowCategoryListModal(true)}
+                title="Manage Categories"
+              >
+                <span className="btn-icon">📁</span>
+                <span className="btn-text">Manage Categories</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -370,6 +415,16 @@ const Products = () => {
               >
                 Edit Product
               </button>
+              {/* Add this delete button */}
+              <button
+                className="btn-delete"
+                onClick={() => {
+                  setProductToDelete(selectedProduct);
+                  setShowDeleteModal(true);
+                }}
+              >
+                Delete Product
+              </button>
             </div>
           </div>
         </div>
@@ -426,6 +481,83 @@ const Products = () => {
               Clear Search
             </button>
           )}
+        </div>
+      )}
+
+      {/* Category List Modal */}
+      <CategoryListModal
+        isOpen={showCategoryListModal}
+        onClose={() => setShowCategoryListModal(false)}
+        onCategoryUpdated={fetchProducts} // Refresh products when categories change
+      />
+
+      {/* Color List Modal */}
+      <ColorListModal
+        isOpen={showColorListModal}
+        onClose={() => setShowColorListModal(false)}
+        onColorUpdated={fetchProducts} // Refresh products when colors change
+      />
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && productToDelete && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowDeleteModal(false)}
+        >
+          <div
+            className="modal-content delete-confirmation-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <h2>Confirm Deletion</h2>
+              <button
+                className="close-button"
+                onClick={() => setShowDeleteModal(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="warning-icon">⚠️</div>
+              <h3>Delete "{productToDelete.name}"?</h3>
+              <p className="delete-warning">This action cannot be undone.</p>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setProductToDelete(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn-delete-confirm"
+                onClick={async () => {
+                  try {
+                    await axios.delete(`/api/products/${productToDelete.id}`);
+                    toast.success("Product deleted successfully!");
+                    setShowDeleteModal(false);
+                    setProductToDelete(null);
+                    closeModal(); // Close the main product details modal
+                    fetchProducts(); // Refresh the list
+                  } catch (error) {
+                    console.error("Error deleting product:", error);
+                    toast.error(
+                      error.response?.data?.error || "Failed to delete product"
+                    );
+                    setShowDeleteModal(false);
+                    setProductToDelete(null);
+                  }
+                }}
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

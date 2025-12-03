@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "./Header";
 import ReviewModal from "./ReviewModal";
 import ProductDetailsModal from "./ProductDetailsModal"; // Add this import
+import { toast } from "react-toastify";
 
 const OrdersPage = () => {
   const [orders, setOrders] = useState([]);
@@ -92,9 +93,17 @@ const OrdersPage = () => {
           o.order_number === orderNumber ? { ...o, status: "cancelled" } : o
         )
       );
+
+      toast.success("Order cancelled successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
     } catch (err) {
       console.error(err);
-      alert("Failed to cancel order");
+      toast.error(err.response?.data?.message || "Failed to cancel order", {
+        position: "top-right",
+        autoClose: 3000,
+      });
     }
   };
 
@@ -144,20 +153,21 @@ const OrdersPage = () => {
 
   const handleArchiveOrder = async (orderNumber) => {
     try {
-      await axios.put(
-        `/api/orders/${orderNumber}/archive`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      // CHANGE THIS LINE FROM PUT TO DELETE
+      await axios.delete(`/api/orders/${orderNumber}/archive`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       setOrders((prev) =>
         prev.map((o) =>
           o.order_number === orderNumber ? { ...o, status: "archived" } : o
         )
       );
+
+      toast.success("Order archived successfully!");
     } catch (err) {
       console.error(err);
-      alert("Failed to archive order");
+      toast.error(err.response?.data?.message || "Failed to archive order");
     }
   };
 

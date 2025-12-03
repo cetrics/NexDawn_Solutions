@@ -1,17 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./css/Home.css";
-import UniversalSearch from './UniversalSearch';
+import UniversalSearch from "./UniversalSearch";
 const Header = () => {
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
   const wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
-  
+
   const cartItemCount = cart.reduce(
     (sum, item) => sum + (item.quantity || 1),
     0
   );
   const wishlistItemCount = wishlist.length;
-  
+
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -58,7 +58,7 @@ const Header = () => {
     <>
       {/* Banner / Header */}
       <div className="home-promo-banner">
-        Get Wells Fargo Sponsored Financing! Buy Now, Pay Later from 3 to 60 months
+        Why pay more? Grab computers & stationery at shockingly low prices!
       </div>
 
       {/* Navigation Bar */}
@@ -80,8 +80,8 @@ const Header = () => {
 
         {/* Amazon-style Search Bar */}
         <div className="home-search-container">
-  <UniversalSearch />
-</div>
+          <UniversalSearch />
+        </div>
 
         <div className="home-header-actions">
           <button className="icon wishlist-icon" onClick={handleWishlistClick}>

@@ -3,29 +3,6 @@ import { Link } from "react-router-dom";
 import "./css/Footer.css";
 
 const Footer = () => {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch("/api/categories/with-products");
-      if (response.ok) {
-        const data = await response.json();
-        setCategories(data);
-      } else {
-        console.error("Failed to fetch categories");
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <footer className="footer">
       <div className="footer-container">
@@ -71,10 +48,10 @@ const Footer = () => {
           <div className="footer-section">
             <h4>Contact Us</h4>
             <div className="contact-info">
-              <p>📧 support@nexdawn.com</p>
-              <p>📞 +1 (555) 123-4567</p>
-              <p>📍 123 Tech Street, Nairobi, Kenya</p>
-              <p>🕒 Mon-Fri: 9AM-6PM</p>
+              <p>📧 info@nexdawn.co.ke</p>
+              <p>📞 +254731062205</p>
+              <p>📍 Kutus, Kirinyaga, Kenya</p>
+              <p>🕒 Mon-Sat: 8AM-5PM</p>
             </div>
           </div>
         </div>

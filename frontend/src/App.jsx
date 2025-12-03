@@ -48,7 +48,9 @@ axios.interceptors.response.use(
 
 const App = () => {
   return (
-    <SearchProvider> {/* ADD THIS PROVIDER */}
+    <SearchProvider>
+      {" "}
+      {/* ADD THIS PROVIDER */}
       <NotificationProvider>
         <Router>
           <ToastContainer
@@ -63,10 +65,14 @@ const App = () => {
             pauseOnHover
             theme="colored"
             toastStyle={{
-              backgroundColor: "#6a0dad",
+              backgroundColor: "#007bff", // Changed from #6a0dad to #007bff
               color: "#fff",
-              fontWeight: "500",
-              borderRadius: "12px",
+              fontWeight: "600",
+              borderRadius: "10px",
+              boxShadow: "0 4px 16px rgba(0, 123, 255, 0.2)",
+              border: "2px solid #e1f0ff",
+              fontSize: "14px",
+              padding: "12px 16px",
             }}
           />
 
@@ -84,7 +90,10 @@ const App = () => {
             <Route path="/order-confirmation" element={<OrdersPage />} />
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/signup" element={<Registration />} />
-            <Route path="/products_services" element={<ProductsAndServices />} />
+            <Route
+              path="/products_services"
+              element={<ProductsAndServices />}
+            />
             <Route path="/contact" element={<ContactMessage />} />
 
             {/* Layout with public routes - individual pages protect themselves */}

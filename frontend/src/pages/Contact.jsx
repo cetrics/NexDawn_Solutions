@@ -109,11 +109,11 @@ const Contact = () => {
             <h3>Our Information</h3>
             <div className="info-item">
               <strong>📍 Address</strong>
-              <p>Nairobi, Kenya</p>
+              <p>Kutus, Kirinyaga, Kenya</p>
             </div>
             <div className="info-item">
               <strong>📞 Phone</strong>
-              <p>+254 7XX XXX XXX</p>
+              <p>+254 731062205</p>
             </div>
             <div className="info-item">
               <strong>✉️ Email</strong>

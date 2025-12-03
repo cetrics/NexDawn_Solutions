@@ -217,13 +217,21 @@ def login():
         cursor = conn.cursor(dictionary=True)
         cursor.execute("""
             SELECT id, username, email, password, phone, first_name,
-                   last_name, user_type
+                   last_name, user_type, last_login  # Added last_login to SELECT
             FROM users WHERE email = %s
         """, (email,))
         user = cursor.fetchone()
 
         if not user or not check_password_hash(user["password"], password):
             return jsonify({"success": False, "message": "Invalid email or password"}), 401
+
+        # UPDATE LAST LOGIN TIMESTAMP 🎯
+        cursor.execute("""
+            UPDATE users 
+            SET last_login = NOW() 
+            WHERE id = %s
+        """, (user["id"],))
+        conn.commit()
 
         # ONE TOKEN ONLY 🎯
         access_token = create_access_token(
@@ -333,24 +341,28 @@ def get_products():
         # Get search parameter from query string
         search = request.args.get('search', '')
         
-        # Base query
+        # Base query - ADD STATUS FILTER FOR 'active' products only
         base_query = """
             SELECT p.id, p.name, p.description, p.price, p.discount, p.stock_quantity, 
-                   p.image_url, p.category_id, p.brand, c.name AS category_name
+                   p.category_id, p.brand, p.status, c.name AS category_name
             FROM products p
             LEFT JOIN categories c ON p.category_id = c.id
+            WHERE p.status = 'active'  -- ONLY SHOW ACTIVE PRODUCTS
         """
         
-        # Add WHERE clause if search parameter is provided
+        query_params = []
+        
+        # Add search conditions if search parameter is provided
         if search:
             base_query += """
-                WHERE p.name LIKE %s 
+                AND (p.name LIKE %s 
                 OR p.description LIKE %s 
                 OR p.brand LIKE %s 
-                OR c.name LIKE %s
+                OR c.name LIKE %s)
             """
             search_term = f"%{search}%"
-            cursor.execute(base_query, (search_term, search_term, search_term, search_term))
+            query_params = [search_term, search_term, search_term, search_term]
+            cursor.execute(base_query, query_params)
         else:
             cursor.execute(base_query)
             
@@ -394,7 +406,6 @@ def get_products():
     finally:
         cursor.close()
         conn.close()
-
 
 @app.route("/api/products/<int:product_id>", methods=["GET"])
 def get_product_by_id(product_id):
@@ -465,9 +476,25 @@ def get_product_by_id(product_id):
 
 @app.route("/api/products", methods=["POST"])
 def add_product():
+    # ✅ ADDED LOGGING: Debug what files are being received
+    print("🔍 DEBUG: Request received")
+    print(f"🔍 DEBUG: Request method: {request.method}")
+    print(f"🔍 DEBUG: Request content type: {request.content_type}")
+    print(f"🔍 DEBUG: Request form data keys: {list(request.form.keys())}")
+    
+    # Get the list of image files
     images = request.files.getlist("images")
-
+    
+    # ✅ ADDED LOGGING: Debug images received
+    print(f"🔍 DEBUG: Number of image files received: {len(images)}")
+    for i, img in enumerate(images):
+        if img and img.filename:
+            print(f"🔍 DEBUG: Image {i}: filename='{img.filename}', content_type='{img.content_type}', size={img.content_length if img.content_length else 'unknown'}")
+        else:
+            print(f"🔍 DEBUG: Image {i}: EMPTY or no filename")
+    
     if not images or all(img.filename == '' for img in images):
+        print("❌ ERROR: No images uploaded or all filenames empty")
         return jsonify({"error": "No images uploaded"}), 400
 
     saved_filenames = []
@@ -478,12 +505,32 @@ def add_product():
             filename = secure_filename(image.filename)
             unique_filename = f"{uuid.uuid4().hex}_{filename}"
             image_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+            
+            # ✅ ADDED LOGGING: Debug file saving
+            print(f"🔍 DEBUG: Saving image - Original: '{image.filename}', Secure: '{filename}', Unique: '{unique_filename}'")
+            print(f"🔍 DEBUG: Save path: {image_path}")
 
             try:
                 image.save(image_path)
                 saved_filenames.append(unique_filename)
+                print(f"✅ SUCCESS: Image saved as '{unique_filename}'")
+                
+                # ✅ ADDED LOGGING: Verify file was saved
+                if os.path.exists(image_path):
+                    file_size = os.path.getsize(image_path)
+                    print(f"✅ SUCCESS: File exists, size: {file_size} bytes")
+                else:
+                    print("❌ ERROR: File was not created!")
+                    
             except Exception as e:
+                print(f"❌ ERROR: Failed to save image '{image.filename}': {str(e)}")
                 return jsonify({"error": f"Failed to save image: {str(e)}"}), 500
+        else:
+            print(f"❌ ERROR: Invalid file type for '{image.filename}'")
+            return jsonify({"error": f"Invalid file type for {image.filename}"}), 400
+
+    # ✅ ADDED LOGGING: Show saved filenames
+    print(f"✅ SUCCESS: All images saved: {saved_filenames}")
 
     # Extract form data
     form_data = request.form
@@ -496,23 +543,40 @@ def add_product():
     colors = form_data.getlist("colors")
     sizes = form_data.getlist("sizes")
     discount = form_data.get("discount")
+    
+    # ✅ ADDED LOGGING: Debug form data
+    print(f"🔍 DEBUG: Form data received:")
+    print(f"  - name: {name}")
+    print(f"  - description: {description[:50]}..." if description else "  - description: None")
+    print(f"  - price: {price}")
+    print(f"  - category_id: {category_id}")
+    print(f"  - brand: {brand}")
+    print(f"  - stock_quantity: {stock_quantity}")
+    print(f"  - colors: {colors}")
+    print(f"  - sizes: {sizes}")
+    print(f"  - discount: {discount}")
 
     # Validate required fields (material removed)
     if not all([name, description, price, category_id, brand]):
+        print("❌ ERROR: Missing required fields")
         # Cleanup saved images
         for filename in saved_filenames:
             image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             if os.path.exists(image_path):
                 os.remove(image_path)
+                print(f"⚠️  CLEANUP: Removed orphaned file '{filename}'")
         return jsonify({"error": "Missing required fields"}), 400
 
     conn = get_db_connection()
     if conn is None:
+        print("❌ ERROR: Database connection failed")
         return jsonify({"error": "DB connection failed"}), 500
 
     try:
         cursor = conn.cursor()
         discount = float(discount) if discount else None
+        
+        print(f"🔍 DEBUG: Inserting product into database...")
 
         # Insert product (material removed)
         cursor.execute("""
@@ -524,15 +588,19 @@ def add_product():
               stock_quantity, discount))
         
         product_id = cursor.lastrowid
+        print(f"✅ SUCCESS: Product inserted with ID: {product_id}")
 
         # Insert product_images
+        print(f"🔍 DEBUG: Inserting {len(saved_filenames)} images into product_images table")
         for filename in saved_filenames:
             cursor.execute("""
                 INSERT INTO product_images (product_id, image_filename)
                 VALUES (%s, %s)
             """, (product_id, filename))
+            print(f"✅ SUCCESS: Image '{filename}' linked to product {product_id}")
 
         # Insert product_colors
+        print(f"🔍 DEBUG: Inserting {len(colors)} colors")
         for color_id in colors:
             cursor.execute("""
                 INSERT INTO product_colors (product_id, color_id) 
@@ -540,6 +608,7 @@ def add_product():
             """, (product_id, int(color_id)))
 
         # Insert product_sizes
+        print(f"🔍 DEBUG: Inserting {len(sizes)} sizes")
         for size in sizes:
             cursor.execute("""
                 INSERT INTO product_sizes (product_id, size_id) 
@@ -547,6 +616,8 @@ def add_product():
             """, (product_id, size))
 
         conn.commit()
+        print(f"✅ SUCCESS: Transaction committed successfully!")
+        
         return jsonify({
             "message": "Product added successfully",
             "product_id": product_id,
@@ -555,17 +626,25 @@ def add_product():
 
     except Exception as e:
         conn.rollback()
-        print("❌ Error adding product:", e)
+        print("❌ ERROR adding product:", e)
+        print(f"❌ ERROR details: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()  # Print full traceback
+        
         # Cleanup saved images on failure
+        print(f"⚠️  CLEANUP: Removing {len(saved_filenames)} saved images due to error")
         for filename in saved_filenames:
             image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             if os.path.exists(image_path):
                 os.remove(image_path)
+                print(f"⚠️  CLEANUP: Removed file '{filename}'")
+                
         return jsonify({"error": "Server error: " + str(e)}), 500
 
     finally:
         cursor.close()
         conn.close()
+        print("🔍 DEBUG: Database connection closed")
 
 
 @app.route("/api/products/<int:product_id>", methods=["PUT"])
@@ -674,33 +753,44 @@ def update_product(product_id):
 
 
 @app.route("/api/products/<int:product_id>", methods=["DELETE"])
-def delete_product(product_id):
+def soft_delete_product(product_id):
+    """Soft delete a product by setting status to 'deleted'"""
     conn = get_db_connection()
     if conn is None:
-        return jsonify({"error": "DB connection failed"}), 500
+        return jsonify({"error": "Database connection failed"}), 500
 
+    cursor = None
     try:
         cursor = conn.cursor()
         
-        # First delete colors and sizes
-        cursor.execute("DELETE FROM product_colors WHERE product_id = %s", (product_id,))
-        cursor.execute("DELETE FROM product_sizes WHERE product_id = %s", (product_id,))
-        
-        # Then delete the product
-        cursor.execute("DELETE FROM products WHERE id = %s", (product_id,))
-        
-        if cursor.rowcount == 0:
+        # First check if product exists
+        cursor.execute("SELECT id FROM products WHERE id = %s", (product_id,))
+        if not cursor.fetchone():
             return jsonify({"error": "Product not found"}), 404
-            
+        
+        # Update status to 'deleted' instead of deleting
+        cursor.execute("""
+            UPDATE products 
+            SET status = 'deleted' 
+            WHERE id = %s
+        """, (product_id,))
+        
         conn.commit()
-        return jsonify({"message": "Product deleted successfully"}), 200
+        return jsonify({
+            "success": True, 
+            "message": "Product marked as deleted"
+        }), 200
+        
     except Exception as e:
-        print("❌", e)
         conn.rollback()
-        return jsonify({"error": "Server error"}), 500
+        print("❌ Error soft deleting product:", e)
+        return jsonify({"error": str(e)}), 500
+        
     finally:
-        cursor.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+        if conn and conn.is_connected():
+            conn.close()
 
 # ---------------------- Colors Endpoints ----------------------
 
@@ -772,6 +862,30 @@ def get_categories():
         cursor.close()
         conn.close()
 
+@app.route("/api/categories/with-products", methods=["GET"])
+def get_categories_with_products():
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+    try:
+        cursor = conn.cursor(dictionary=True)
+        # Get categories that have at least one product
+        cursor.execute("""
+            SELECT DISTINCT c.id, c.name, COUNT(p.id) as product_count
+            FROM categories c
+            LEFT JOIN products p ON c.id = p.category_id
+            GROUP BY c.id, c.name
+            HAVING COUNT(p.id) > 0
+            ORDER BY c.name ASC
+        """)
+        categories = cursor.fetchall()
+        return jsonify(categories), 200
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        return jsonify({"error": "Server error"}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 @app.route("/api/categories", methods=["POST"])
 def add_category():
@@ -806,6 +920,80 @@ def add_category():
     finally:
         cursor.close()
         conn.close()
+
+# PUT update category
+@app.route("/api/categories/<int:category_id>", methods=["PUT"])
+def update_category(category_id):
+    data = request.get_json()
+    name = data.get("name")
+
+    if not name:
+        return jsonify({"error": "Category name is required"}), 400
+
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "DB connection failed"}), 500
+
+    try:
+        cursor = conn.cursor()
+        
+        # Check if category exists
+        cursor.execute("SELECT * FROM categories WHERE id = %s", (category_id,))
+        if not cursor.fetchone():
+            return jsonify({"error": "Category not found"}), 404
+        
+        # Check if new name already exists (excluding current category)
+        cursor.execute("SELECT * FROM categories WHERE name = %s AND id != %s", (name, category_id))
+        if cursor.fetchone():
+            return jsonify({"error": "Category name already exists"}), 409
+
+        cursor.execute("UPDATE categories SET name = %s WHERE id = %s", (name, category_id))
+        conn.commit()
+        return jsonify({"message": "Category updated"}), 200
+    except Exception as e:
+        print("❌", e)
+        return jsonify({"error": "Server error"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+# PUT update color
+@app.route("/api/colors/<int:color_id>", methods=["PUT"])
+def update_color(color_id):
+    data = request.get_json()
+    name = data.get("name")
+
+    if not name:
+        return jsonify({"error": "Color name is required"}), 400
+
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "DB connection failed"}), 500
+
+    try:
+        cursor = conn.cursor()
+        
+        # Check if color exists
+        cursor.execute("SELECT * FROM colors WHERE color_id = %s", (color_id,))
+        if not cursor.fetchone():
+            return jsonify({"error": "Color not found"}), 404
+        
+        # Check if new name already exists (excluding current color)
+        cursor.execute("SELECT * FROM colors WHERE name = %s AND color_id != %s", (name, color_id))
+        if cursor.fetchone():
+            return jsonify({"error": "Color name already exists"}), 409
+
+        cursor.execute("UPDATE colors SET name = %s WHERE color_id = %s", (name, color_id))
+        conn.commit()
+        return jsonify({"message": "Color updated"}), 200
+    except Exception as e:
+        print("❌", e)
+        return jsonify({"error": "Server error"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
 
 # ADDRESS ENDPOINTS
 
@@ -1149,30 +1337,58 @@ def get_user_orders(user_id):
         cursor.close()
         conn.close()
 
-@app.route("/api/categories/with-products", methods=["GET"])
-def get_categories_with_products():
+@app.route("/api/orders/<string:order_number>/archive", methods=["DELETE"])
+def archive_order(order_number):
+    """Archive an order (soft delete)"""
     conn = get_db_connection()
-    if conn is None:
+    if not conn:
         return jsonify({"error": "Database connection failed"}), 500
+    
+    cursor = None
     try:
-        cursor = conn.cursor(dictionary=True)
-        # Get categories that have at least one product
+        cursor = conn.cursor()
         cursor.execute("""
-            SELECT DISTINCT c.id, c.name, COUNT(p.id) as product_count
-            FROM categories c
-            LEFT JOIN products p ON c.id = p.category_id
-            GROUP BY c.id, c.name
-            HAVING COUNT(p.id) > 0
-            ORDER BY c.name ASC
-        """)
-        categories = cursor.fetchall()
-        return jsonify(categories), 200
+            UPDATE orders 
+            SET status = 'archived' 
+            WHERE order_number = %s
+        """, (order_number,))
+        conn.commit()
+        return jsonify({"success": True, "message": "Order archived"}), 200
     except Exception as e:
-        print(f"❌ Error: {e}")
-        return jsonify({"error": "Server error"}), 500
+        print("Archive error:", e)
+        return jsonify({"error": str(e)}), 500
     finally:
-        cursor.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+        if conn and conn.is_connected():
+            conn.close()
+
+@app.route("/api/orders/<string:order_number>/cancel", methods=["PUT"])
+def cancel_order(order_number):
+    """Cancel an order"""
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+    
+    cursor = None
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE orders 
+            SET status = 'cancelled' 
+            WHERE order_number = %s
+        """, (order_number,))
+        conn.commit()
+        return jsonify({"success": True, "message": "Order cancelled"}), 200
+    except Exception as e:
+        print("Cancel error:", e)
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn and conn.is_connected():
+            conn.close()
+
 
 
 @app.route("/api/reviews/product/<int:product_id>", methods=["GET"])

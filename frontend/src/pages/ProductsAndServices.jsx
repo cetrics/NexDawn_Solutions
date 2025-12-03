@@ -2,28 +2,29 @@ import React from "react";
 import "./css/ProductsAndServices.css";
 import Header from "./Header";
 import Footer from "./Footer";
+import { useNavigate } from "react-router-dom";
 
 // Import icons with only available FontAwesome icons
-import { 
-  FaRobot, 
-  FaGraduationCap, 
-  FaSchool, 
-  FaLaptop, 
-  FaKeyboard, 
-  FaMouse, 
+import {
+  FaRobot,
+  FaGraduationCap,
+  FaSchool,
+  FaLaptop,
+  FaKeyboard,
+  FaMouse,
   FaMobile,
-  FaNetworkWired, 
-  FaBatteryFull, 
-  FaCarBattery, 
-  FaPrint, 
-  FaSearch, 
-  FaFileInvoice, 
-  FaDollarSign, 
-  FaUserShield, 
-  FaIdCard, 
-  FaDesktop, 
-  FaTools, 
-  FaPaperclip 
+  FaNetworkWired,
+  FaBatteryFull,
+  FaCarBattery,
+  FaPrint,
+  FaSearch,
+  FaFileInvoice,
+  FaDollarSign,
+  FaUserShield,
+  FaIdCard,
+  FaDesktop,
+  FaTools,
+  FaPaperclip,
 } from "react-icons/fa";
 
 const productsAndServicesData = [
@@ -59,7 +60,8 @@ const productsAndServicesData = [
   },
   {
     category: "TECH SHOP",
-    tagline: "Sales of new and refurbished computers and all essential IT peripherals",
+    tagline:
+      "Sales of new and refurbished computers and all essential IT peripherals",
     items: [
       { name: "Desktop Computers", icon: <FaDesktop />, details: [] },
       { name: "Laptops", icon: <FaLaptop />, details: [] },
@@ -68,7 +70,11 @@ const productsAndServicesData = [
       { name: "Smart Watches (Oraimo)", icon: <FaMobile />, details: [] },
       { name: "Networking Accessories", icon: <FaNetworkWired />, details: [] },
       { name: "Rechargeable Mouse", icon: <FaMouse />, details: [] },
-      { name: "Handboss Universal Cleaning Agent", icon: <FaTools />, details: [] },
+      {
+        name: "Handboss Universal Cleaning Agent",
+        icon: <FaTools />,
+        details: [],
+      },
     ],
     badge: "Countrywide Delivery",
   },
@@ -89,8 +95,16 @@ const productsAndServicesData = [
     category: "POWER SOLUTIONS",
     tagline: "Reliable power solutions for home, office, and outdoor use",
     items: [
-      { name: "Hithium 200W Portable Power Station", icon: <FaBatteryFull />, details: [] },
-      { name: "Car Battery Jump Starter Kits", icon: <FaCarBattery />, details: [] },
+      {
+        name: "Hithium 200W Portable Power Station",
+        icon: <FaBatteryFull />,
+        details: [],
+      },
+      {
+        name: "Car Battery Jump Starter Kits",
+        icon: <FaCarBattery />,
+        details: [],
+      },
     ],
     badge: "Countrywide Delivery",
   },
@@ -98,7 +112,11 @@ const productsAndServicesData = [
     category: "ONLINE SERVICES",
     tagline: "Comprehensive online government and business services",
     items: [
-      { name: "Business Name search & registration", icon: <FaSearch />, details: [] },
+      {
+        name: "Business Name search & registration",
+        icon: <FaSearch />,
+        details: [],
+      },
       { name: "TSC/PSC Payslips", icon: <FaFileInvoice />, details: [] },
       { name: "KRA Services", icon: <FaDollarSign />, details: [] },
       { name: "HELB Services", icon: <FaGraduationCap />, details: [] },
@@ -132,64 +150,67 @@ const productsAndServicesData = [
 ];
 
 const ProductsAndServices = () => {
+  const navigate = useNavigate();
   return (
     <div>
-    <Header />    
-    <div className="homepage">
-      {/* Main title for the entire section */}
-      <h1 className="home-main-section-title">✨ Our Products & Services</h1>
-      <p className="home-main-section-subtitle">
-        A comprehensive range of tech, education, and business solutions designed to meet all your needs
-      </p>
+      <Header />
+      <div className="homepage">
+        {/* Main title for the entire section */}
+        <h1 className="home-main-section-title">✨ Our Products & Services</h1>
+        <p className="home-main-section-subtitle">
+          A comprehensive range of tech, education, and business solutions
+          designed to meet all your needs
+        </p>
 
-      {productsAndServicesData.map((section, index) => (
-        <section
-          key={index}
-          id={`service-${section.category
-            .toLowerCase()
-            .replace(/[^a-z0-9]/g, "-")}`}
-          className="service-section home-product-section"
-        >
-          <div className="service-header">
-            <h2>{section.category}</h2>
-            {section.tagline && (
-              <p className="service-tagline">{section.tagline}</p>
-            )}
-            {section.badge && (
-              <div className="service-delivery-badge">{section.badge}</div>
-            )}
-          </div>
+        {productsAndServicesData.map((section, index) => (
+          <section
+            key={index}
+            id={`service-${section.category
+              .toLowerCase()
+              .replace(/[^a-z0-9]/g, "-")}`}
+            className="service-section home-product-section"
+          >
+            <div className="service-header">
+              <h2>{section.category}</h2>
+              {section.tagline && (
+                <p className="service-tagline">{section.tagline}</p>
+              )}
+              {section.badge && (
+                <div className="service-delivery-badge">{section.badge}</div>
+              )}
+            </div>
 
-          <div className="service-grid">
-            {section.items.map((item, itemIndex) => (
-              <div key={itemIndex} className="service-card">
-                <div className="service-card-header">
-                  <div className="service-icon">
-                    {item.icon}
+            <div className="service-grid">
+              {section.items.map((item, itemIndex) => (
+                <div key={itemIndex} className="service-card">
+                  <div className="service-card-header">
+                    <div className="service-icon">{item.icon}</div>
+                    <h3>{item.name}</h3>
                   </div>
-                  <h3>{item.name}</h3>
+                  {item.details.length > 0 && (
+                    <ul className="service-details-list">
+                      {item.details.map((detail, detailIndex) => (
+                        <li key={detailIndex}>{detail}</li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-                {item.details.length > 0 && (
-                  <ul className="service-details-list">
-                    {item.details.map((detail, detailIndex) => (
-                      <li key={detailIndex}>{detail}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      ))}
-      
-      {/* Single Enquire Now button at the bottom */}
-      <div className="service-main-enquire-btn-container">
-        <button className="home-add-to-cart-btn service-main-enquire-btn">
-          Enquire Now
-        </button>
+              ))}
+            </div>
+          </section>
+        ))}
+
+        {/* Single Enquire Now button at the bottom */}
+        <div className="service-main-enquire-btn-container">
+          <button
+            className="home-add-to-cart-btn service-main-enquire-btn"
+            onClick={() => navigate("/contact")}
+          >
+            Enquire Now
+          </button>
+        </div>
       </div>
-    </div>
-    <Footer />
+      <Footer />
     </div>
   );
 };
